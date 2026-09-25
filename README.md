@@ -134,21 +134,47 @@ only read what was stored. Only the newest position is kept - never a trail.
 Collection runs in the foreground and pauses when the page is hidden, which is
 why background location is not requested.
 
+### Caregiver sign-in
+
+A caregiver signs in on their own device. The person issues an access code from
+Caregiver Access and passes it on with the email already on the record;
+`services/caregiverAuth.ts` verifies the pair, opens a session, and the
+caregiver then sees only what their own permissions allow. A wrong code is
+refused, an unknown email gives the identical message so the screen cannot be
+used to discover who exists, and revoking the code or pausing the caregiver
+drops any live session on the next render.
+
 `services/caregiverAccess.ts` is the single gate every read passes through,
 written as the body of the future `GET /api/caregiver/users/:userId/location`.
 
-**It is not a security boundary.** With no server, that check runs on the same
-device that holds the data, so it enforces the product's rules, not its
-security. Anyone who can open this device's browser storage can read the
+**Neither is a security boundary.** With no server, both the sign-in and the
+access check run on the same device that holds the data, so they enforce the
+product's rules, not its security. The sign-in is a real credential check with a
+real session - it keeps an honest caregiver inside their permissions - but it
+cannot stop anyone who can open the device's browser storage. Anyone who can open this device's browser storage can read the
 position whatever the check returns. Real protection needs the identical check
 running server-side behind an authenticated session, before the data is ever
 sent.
+
+## The app shell
+
+`layouts/AppShell.tsx` owns the frame: the top window inset, the scroll region,
+and the bottom bar. Android 15+ draws every app edge to edge and Capacitor 8
+carries no inset shim, so the layout reads the real insets through
+`env(safe-area-inset-*)` and the `--dm-safe-*` custom properties rather than a
+padding that happens to look right on one phone.
+
+Screens supply their own app bar - `BrandBar` on the dashboard, `PageBar`
+elsewhere - and lay their content out with `.dm-page` / `.dm-gutter`, so the
+horizontal margin is defined once. Vertical spacing stays on a 4px scale.
 
 ## Android
 
 `npx cap sync android` after any dependency change. The manifest requests
 foreground location (coarse and fine) and the notification permissions;
-background location is deliberately absent.
+background location is deliberately absent. `services/nativeShell.ts` asks for
+dark status-bar icons, which the light canvas needs once it is drawn behind
+them.
 
 ## What is deliberately not here
 
