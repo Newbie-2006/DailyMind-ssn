@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Plus, Trash2, Users } from 'lucide-react';
+import { LayoutDashboard, Plus, Trash2, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { Caregiver, CaregiverPermissions } from '../types';
 import { useAppData } from '../hooks/useAppData';
 import { initials } from '../utils/format';
@@ -11,29 +12,25 @@ import { Modal } from '../components/ui/Modal';
 import { TextField } from '../components/ui/Field';
 import { EmptyState } from '../components/ui/EmptyState';
 import { useToast } from '../components/ui/toastContext';
+import { useTranslation } from '../i18n/useTranslation';
+import type { TranslationKey } from '../i18n/translate';
 
 const permissionRows: {
   key: keyof CaregiverPermissions;
-  label: string;
-  description: string;
+  labelKey: TranslationKey;
+  bodyKey: TranslationKey;
 }[] = [
-  {
-    key: 'routines',
-    label: 'Routines and activities',
-    description: 'What is on each day, and what was completed.',
-  },
-  { key: 'memories', label: 'Memories', description: 'The moments you have saved.' },
-  {
-    key: 'insights',
-    label: 'Routine insights',
-    description: 'Plain observations about your week.',
-  },
-  { key: 'profile', label: 'Basic profile information', description: 'Your name and email.' },
+  { key: 'routines', labelKey: 'caregivers.perm.routines', bodyKey: 'caregivers.perm.routinesBody' },
+  { key: 'memories', labelKey: 'caregivers.perm.memories', bodyKey: 'caregivers.perm.memoriesBody' },
+  { key: 'insights', labelKey: 'caregivers.perm.insights', bodyKey: 'caregivers.perm.insightsBody' },
+  { key: 'location', labelKey: 'caregivers.perm.location', bodyKey: 'caregivers.perm.locationBody' },
+  { key: 'profile', labelKey: 'caregivers.perm.profile', bodyKey: 'caregivers.perm.profileBody' },
 ];
 
 export function CaregiverAccess() {
   const { caregivers, actions } = useAppData();
   const { notify } = useToast();
+  const { t } = useTranslation();
 
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<Caregiver | null>(null);
@@ -45,27 +42,34 @@ export function CaregiverAccess() {
     if (!name.trim()) return;
     actions.addCaregiver({
       name: name.trim(),
-      relation: relation.trim() || 'Caregiver',
+      relation: relation.trim() || t('caregivers.defaultRelation'),
       email: email.trim(),
       active: true,
-      // A new caregiver starts with the least access, not the most.
-      permissions: { routines: true, memories: false, insights: false, profile: true },
+      // A new caregiver starts with the least access, not the most. Location in
+      // particular is never on by default.
+      permissions: {
+        routines: true,
+        memories: false,
+        insights: false,
+        profile: true,
+        location: false,
+      },
     });
     setName('');
     setRelation('');
     setEmail('');
     setAdding(false);
-    notify('Caregiver added');
+    notify(t('caregivers.addedToast'));
   };
 
   return (
     <div className="pb-10">
       <PageHeader
-        title="Caregiver access"
+        title={t('caregivers.title')}
         onBack
         fallbackTo="/profile"
         actions={
-          <IconButton label="Add a caregiver" tone="filled" onClick={() => setAdding(true)}>
+          <IconButton label={t('caregivers.add')} tone="filled" onClick={() => setAdding(true)}>
             <Plus size={20} strokeWidth={2} aria-hidden="true" />
           </IconButton>
         }
@@ -73,19 +77,23 @@ export function CaregiverAccess() {
 
       <div className="space-y-6 px-5 pt-2">
         <Card surface="sage" className="flex items-start gap-3 px-4 py-4">
-          <Users size={18} strokeWidth={1.6} aria-hidden="true" className="mt-0.5 shrink-0 text-forest-soft" />
+          <Users
+            size={18}
+            strokeWidth={1.6}
+            aria-hidden="true"
+            className="mt-0.5 shrink-0 text-forest-soft"
+          />
           <p className="text-[0.875rem] leading-relaxed text-forest-deep">
-            Share selected information with trusted caregivers. You choose what each person can see,
-            and you can turn any of it off at any time.
+            {t('caregivers.intro')}
           </p>
         </Card>
 
         {caregivers.length === 0 ? (
           <EmptyState
             icon={<Users size={24} strokeWidth={1.5} />}
-            title="No one has access"
-            body="Nothing is shared until you invite someone and switch on what they can see."
-            action={<Button onClick={() => setAdding(true)}>Add a caregiver</Button>}
+            title={t('caregivers.empty.title')}
+            body={t('caregivers.empty.body')}
+            action={<Button onClick={() => setAdding(true)}>{t('caregivers.add')}</Button>}
           />
         ) : (
           caregivers.map((caregiver) => (
@@ -123,7 +131,7 @@ export function CaregiverAccess() {
                         : 'bg-surface-sunk text-ink-faint'
                     }`}
                   >
-                    {caregiver.active ? 'Active' : 'Paused'}
+                    {caregiver.active ? t('caregivers.active') : t('caregivers.paused')}
                   </span>
                 </div>
 
@@ -131,11 +139,11 @@ export function CaregiverAccess() {
                   <Toggle
                     checked={caregiver.active}
                     onChange={(next) => actions.updateCaregiver(caregiver.id, { active: next })}
-                    label="Sharing is on"
+                    label={t('caregivers.sharingOn')}
                     description={
                       caregiver.active
-                        ? `${caregiver.name} can see what is switched on below.`
-                        : `${caregiver.name} cannot see anything while this is off.`
+                        ? t('caregivers.sharingOnBody', { name: caregiver.name })
+                        : t('caregivers.sharingOffBody', { name: caregiver.name })
                     }
                     showLabel
                   />
@@ -147,7 +155,7 @@ export function CaregiverAccess() {
                   }`}
                 >
                   <h3 className="mb-2 text-[0.8125rem] font-medium text-ink-soft">
-                    Sharing permissions
+                    {t('caregivers.permissions')}
                   </h3>
                   {permissionRows.map((row) => (
                     <Toggle
@@ -157,21 +165,31 @@ export function CaregiverAccess() {
                       onChange={(next) =>
                         actions.setCaregiverPermission(caregiver.id, row.key, next)
                       }
-                      label={row.label}
-                      description={row.description}
+                      label={t(row.labelKey)}
+                      description={t(row.bodyKey)}
                       showLabel
                     />
                   ))}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setRemoving(caregiver)}
-                  className="tap mt-4 inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] text-ink-soft active:bg-surface-sunk"
-                >
-                  <Trash2 size={15} strokeWidth={1.8} aria-hidden="true" />
-                  Remove access
-                </button>
+                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line-soft pt-3.5">
+                  <Link
+                    to={`/caregivers/${caregiver.id}/dashboard`}
+                    className="tap inline-flex min-h-10 items-center gap-1.5 rounded-full bg-sage-wash px-3.5 text-[0.8125rem] font-medium text-forest-deep"
+                  >
+                    <LayoutDashboard size={15} strokeWidth={1.8} aria-hidden="true" />
+                    {t('caregivers.viewDashboard')}
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => setRemoving(caregiver)}
+                    className="tap inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] text-ink-soft active:bg-surface-sunk"
+                  >
+                    <Trash2 size={15} strokeWidth={1.8} aria-hidden="true" />
+                    {t('caregivers.removeAccess')}
+                  </button>
+                </div>
               </Card>
             </section>
           ))
@@ -181,34 +199,33 @@ export function CaregiverAccess() {
       <Modal
         open={adding}
         onClose={() => setAdding(false)}
-        title="Add a caregiver"
-        description="They start with the least access. You decide what to switch on afterwards."
+        title={t('caregivers.addTitle')}
+        description={t('caregivers.addBody')}
         actions={
           <>
             <Button size="lg" onClick={addCaregiver} disabled={!name.trim()}>
-              Add caregiver
+              {t('caregivers.addConfirm')}
             </Button>
             <Button size="lg" variant="quiet" onClick={() => setAdding(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
           </>
         }
       >
         <div className="space-y-4">
           <TextField
-            label="Name"
+            label={t('caregivers.nameLabel')}
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Priya"
           />
           <TextField
-            label="Relationship"
+            label={t('caregivers.relationLabel')}
             value={relation}
             onChange={(event) => setRelation(event.target.value)}
-            placeholder="Daughter"
           />
           <TextField
-            label="Email"
+            label={t('caregivers.emailLabel')}
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -220,8 +237,8 @@ export function CaregiverAccess() {
       <Modal
         open={removing !== null}
         onClose={() => setRemoving(null)}
-        title={removing ? `Remove ${removing.name}?` : ''}
-        description="They will no longer be able to see anything from DailyMind."
+        title={removing ? t('caregivers.removeTitle', { name: removing.name }) : ''}
+        description={t('caregivers.removeBody')}
         actions={
           <>
             <Button
@@ -229,13 +246,13 @@ export function CaregiverAccess() {
               onClick={() => {
                 if (removing) actions.removeCaregiver(removing.id);
                 setRemoving(null);
-                notify('Access removed');
+                notify(t('caregivers.removedToast'));
               }}
             >
-              Remove access
+              {t('caregivers.removeAccess')}
             </Button>
             <Button size="lg" variant="quiet" onClick={() => setRemoving(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
           </>
         }

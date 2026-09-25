@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAppData } from '../hooks/useAppData';
 import { assistant, greetingMessage, type AssistantContext } from '../services/assistantService';
+import { useTranslation } from '../i18n/useTranslation';
+import { caregiversWithLocationAccess } from '../services/caregiverAccess';
 import { today } from '../utils/date';
 import { createId } from '../utils/format';
 import { PageHeader } from '../components/PageHeader';
@@ -22,27 +24,24 @@ function clockTime(): string {
 }
 
 export function Assistant() {
-  const { memories, routines, completions, settings } = useAppData();
+  const { memories, routines, completions, settings, caregivers, location } = useAppData();
+  const { t, language } = useTranslation();
 
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [thinking, setThinking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const endRef = useRef<HTMLDivElement>(null);
+  // Fixed at mount so the greeting's timestamp does not jump on re-render.
+  const [openedAt] = useState(clockTime);
 
-  // The opening turn is generated, not hardcoded, so it reflects the real day.
-  useEffect(() => {
-    setTurns([
-      {
-        id: createId('turn'),
-        role: 'assistant',
-        reply: greetingMessage(settings.name),
-        time: clockTime(),
-      },
-    ]);
-    // Only on mount: re-greeting on every settings change would be noise.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  /**
+   * The opening turn is derived rather than stored, so it is always written in
+   * the language currently selected - a non-English dictionary arrives as a
+   * separate chunk just after the first render, and a stored greeting would be
+   * stranded in English. Everything the person actually said lives in `turns`.
+   */
+  const greeting = useMemo(() => greetingMessage(settings.name, t), [settings.name, t]);
 
   const context = useMemo<AssistantContext>(
     () => ({
@@ -51,8 +50,17 @@ export function Assistant() {
       routines,
       completions,
       memories,
+      language,
+      t,
+      location: {
+        sharingEnabled: location.sharingEnabled,
+        lastUpdated: location.lastFix?.timestamp,
+        sharedWith: caregiversWithLocationAccess(caregivers, settings).map(
+          (caregiver) => caregiver.name,
+        ),
+      },
     }),
-    [settings.name, routines, completions, memories],
+    [settings, routines, completions, memories, language, t, location, caregivers],
   );
 
   useEffect(() => {
@@ -75,22 +83,26 @@ export function Assistant() {
           { id: createId('turn'), role: 'assistant', reply, time: clockTime() },
         ]);
       } catch {
-        setError('Something went wrong reaching the assistant. Please try again.');
+        setError(t('assistant.error'));
       } finally {
         setThinking(false);
       }
     },
-    [context],
+    [context, t],
   );
 
   const lastAssistant = [...turns].reverse().find((turn) => turn.role === 'assistant');
-  const suggestions = !thinking ? (lastAssistant?.reply?.suggestions ?? []) : [];
+  const suggestions = thinking
+    ? []
+    : (lastAssistant?.reply?.suggestions ?? greeting.suggestions ?? []);
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <PageHeader title="DailyMind Assistant" />
+      <PageHeader title={t('assistant.title')} />
 
       <div className="flex-1 space-y-4 px-5 pt-2 pb-4">
+        <AssistantBubble reply={greeting} time={openedAt} />
+
         {turns.map((turn) =>
           turn.role === 'user' ? (
             <UserMessage key={turn.id} text={turn.text ?? ''} time={turn.time} />

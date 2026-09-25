@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppDataProvider } from './hooks/AppDataProvider';
+import { I18nProvider } from './i18n/I18nProvider';
 import { ToastProvider } from './components/ui/Toast';
 import { AppShell } from './layouts/AppShell';
 import { LoadingState } from './components/ui/EmptyState';
@@ -30,56 +31,75 @@ const Insights = lazy(() => import('./pages/Insights').then((m) => ({ default: m
 const CaregiverAccess = lazy(() =>
   import('./pages/CaregiverAccess').then((m) => ({ default: m.CaregiverAccess })),
 );
+const CaregiverDashboard = lazy(() =>
+  import('./pages/CaregiverDashboard').then((m) => ({ default: m.CaregiverDashboard })),
+);
+const CaregiverLocation = lazy(() =>
+  import('./pages/CaregiverLocation').then((m) => ({ default: m.CaregiverLocation })),
+);
 const PrivacySharing = lazy(() =>
   import('./pages/PrivacySharing').then((m) => ({ default: m.PrivacySharing })),
 );
 const PersonalInformation = lazy(() =>
   import('./pages/ProfileDetails').then((m) => ({ default: m.PersonalInformation })),
 );
-const NotificationSettingsPage = lazy(() =>
-  import('./pages/ProfileDetails').then((m) => ({ default: m.NotificationSettingsPage })),
-);
 const HelpSupport = lazy(() =>
   import('./pages/ProfileDetails').then((m) => ({ default: m.HelpSupport })),
+);
+const NotificationSettingsPage = lazy(() =>
+  import('./pages/NotificationSettings').then((m) => ({ default: m.NotificationSettingsPage })),
+);
+const LanguageSettings = lazy(() =>
+  import('./pages/LanguageSettings').then((m) => ({ default: m.LanguageSettings })),
+);
+const LocationSharing = lazy(() =>
+  import('./pages/LocationSharing').then((m) => ({ default: m.LocationSharing })),
 );
 
 export default function App() {
   return (
-    <AppDataProvider>
-      <ToastProvider>
-        <Suspense fallback={<LoadingState />}>
-          <Routes>
-            <Route path="/" element={<Entry />} />
-            <Route path="/welcome" element={<Welcome />} />
+    <I18nProvider>
+      <AppDataProvider>
+        <ToastProvider>
+          <Suspense fallback={<LoadingState />}>
+            <Routes>
+              <Route path="/" element={<Entry />} />
+              <Route path="/welcome" element={<Welcome />} />
 
-            <Route element={<AppShell />}>
-              <Route path="/home" element={<Home />} />
+              <Route element={<AppShell />}>
+                <Route path="/home" element={<Home />} />
 
-              <Route path="/memories" element={<Memories />} />
-              <Route path="/memories/new" element={<AddMemory />} />
-              <Route path="/memories/:memoryId" element={<MemoryDetails />} />
-              <Route path="/memories/:memoryId/edit" element={<AddMemory />} />
+                <Route path="/memories" element={<Memories />} />
+                <Route path="/memories/new" element={<AddMemory />} />
+                <Route path="/memories/:memoryId" element={<MemoryDetails />} />
+                <Route path="/memories/:memoryId/edit" element={<AddMemory />} />
 
-              <Route path="/routines" element={<Routines />} />
-              <Route path="/routines/new" element={<AddRoutine />} />
-              <Route path="/routines/:routineId" element={<RoutineDetails />} />
-              <Route path="/routines/:routineId/edit" element={<AddRoutine />} />
+                <Route path="/routines" element={<Routines />} />
+                <Route path="/routines/new" element={<AddRoutine />} />
+                <Route path="/routines/:routineId" element={<RoutineDetails />} />
+                <Route path="/routines/:routineId/edit" element={<AddRoutine />} />
 
-              <Route path="/assistant" element={<Assistant />} />
-              <Route path="/insights" element={<Insights />} />
+                <Route path="/assistant" element={<Assistant />} />
+                <Route path="/insights" element={<Insights />} />
 
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/profile/personal" element={<PersonalInformation />} />
-              <Route path="/profile/notifications" element={<NotificationSettingsPage />} />
-              <Route path="/profile/help" element={<HelpSupport />} />
-              <Route path="/caregivers" element={<CaregiverAccess />} />
-              <Route path="/privacy" element={<PrivacySharing />} />
-            </Route>
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/personal" element={<PersonalInformation />} />
+                <Route path="/profile/notifications" element={<NotificationSettingsPage />} />
+                <Route path="/profile/language" element={<LanguageSettings />} />
+                <Route path="/profile/location" element={<LocationSharing />} />
+                <Route path="/profile/help" element={<HelpSupport />} />
 
-            <Route path="*" element={<Navigate to="/home" replace />} />
-          </Routes>
-        </Suspense>
-      </ToastProvider>
-    </AppDataProvider>
+                <Route path="/caregivers" element={<CaregiverAccess />} />
+                <Route path="/caregivers/:caregiverId/dashboard" element={<CaregiverDashboard />} />
+                <Route path="/caregivers/:caregiverId/location" element={<CaregiverLocation />} />
+                <Route path="/privacy" element={<PrivacySharing />} />
+              </Route>
+
+              <Route path="*" element={<Navigate to="/home" replace />} />
+            </Routes>
+          </Suspense>
+        </ToastProvider>
+      </AppDataProvider>
+    </I18nProvider>
   );
 }
