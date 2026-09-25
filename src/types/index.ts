@@ -47,6 +47,8 @@ export interface Routine {
   /** Weekday numbers (0 = Sunday). Authoritative for `custom`, derived otherwise. */
   days: number[];
   note?: string;
+  /** Whether this routine raises a notification at its time. */
+  reminderEnabled?: boolean;
   createdAt: string;
 }
 
@@ -75,6 +77,38 @@ export interface CaregiverPermissions {
   memories: boolean;
   insights: boolean;
   profile: boolean;
+  /** The latest position, and only while location sharing is on. */
+  location: boolean;
+}
+
+/** How often DailyMind is allowed to record a new position. */
+export type LocationFrequency = 'frequent' | 'balanced' | 'saver';
+
+export interface LocationFix {
+  latitude: number;
+  longitude: number;
+  /** Radius in metres, when the device reports one. */
+  accuracy?: number;
+  /** Epoch milliseconds. */
+  timestamp: number;
+}
+
+export type LocationErrorCode =
+  | 'permission-denied'
+  | 'unavailable'
+  | 'timeout'
+  | 'unsupported'
+  | 'offline';
+
+/**
+ * Only the newest position is kept. A caregiver safety feature needs "where are
+ * they now", not a history of everywhere someone has been.
+ */
+export interface LocationState {
+  sharingEnabled: boolean;
+  lastFix: LocationFix | null;
+  frequency: LocationFrequency;
+  lastError?: LocationErrorCode;
 }
 
 export interface Caregiver {
@@ -88,9 +122,16 @@ export interface Caregiver {
 }
 
 export interface NotificationSettings {
+  /** Master switch for everything DailyMind schedules. */
   routineReminders: boolean;
   memoryPrompts: boolean;
   weeklySummary: boolean;
+  /** One message each morning listing the day. */
+  dailySummary: boolean;
+  summaryTime: TimeOfDay;
+  /** A late nudge about anything still unfinished. */
+  eveningCheck: boolean;
+  eveningTime: TimeOfDay;
 }
 
 export interface Settings {

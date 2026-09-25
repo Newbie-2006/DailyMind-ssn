@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { BottomNavigation } from '../components/BottomNavigation';
+import { useReminderSync } from '../hooks/useReminders';
 
 /**
  * The phone frame. On a handset it fills the screen; on a wide screen it stays
@@ -14,6 +15,9 @@ import { BottomNavigation } from '../components/BottomNavigation';
 export function AppShell() {
   const { pathname } = useLocation();
   const scroller = useRef<HTMLElement>(null);
+
+  // Keeps scheduled reminders in step with the routines, on every screen.
+  useReminderSync();
 
   // Each screen should start at the top, the way a native push does.
   useEffect(() => {

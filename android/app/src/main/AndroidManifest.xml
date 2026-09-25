@@ -38,4 +38,26 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+        Location sharing. Foreground ("while in use") only: DailyMind records a
+        position while the app is open, so ACCESS_BACKGROUND_LOCATION is
+        deliberately not requested. Coarse is listed first because a caregiver
+        needs the neighbourhood, not the doorstep, and Android 12+ lets people
+        grant approximate location alone.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!--
+        Scheduled reminders. POST_NOTIFICATIONS is the Android 13+ runtime
+        permission; the other two let a reminder survive a reboot and fire at an
+        exact time rather than whenever the system next feels like it.
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <!-- GPS hardware is not required; network location is enough for this feature. -->
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 </manifest>

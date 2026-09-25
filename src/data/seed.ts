@@ -1,4 +1,11 @@
-import type { Caregiver, CompletionLog, Memory, Routine, Settings } from '../types';
+import type {
+  Caregiver,
+  CompletionLog,
+  LocationState,
+  Memory,
+  Routine,
+  Settings,
+} from '../types';
 import { photos, thumbs, avatars } from './photos';
 import { addDays, today, weekdayOf } from '../utils/date';
 
@@ -12,7 +19,18 @@ export const seedSettings: Settings = {
     routineReminders: true,
     memoryPrompts: true,
     weeklySummary: false,
+    dailySummary: true,
+    summaryTime: '08:00',
+    eveningCheck: false,
+    eveningTime: '19:00',
   },
+};
+
+/** Sharing starts off. Nothing is collected until the person turns it on. */
+export const seedLocation: LocationState = {
+  sharingEnabled: false,
+  lastFix: null,
+  frequency: 'balanced',
 };
 
 export const seedMemories: Memory[] = [
@@ -275,7 +293,13 @@ export const seedCaregivers: Caregiver[] = [
     email: 'priya@example.com',
     avatar: avatars.priya,
     active: true,
-    permissions: { routines: true, memories: true, insights: true, profile: true },
+    permissions: {
+      routines: true,
+      memories: true,
+      insights: true,
+      profile: true,
+      location: true,
+    },
   },
   {
     id: 'cg_rohan',
@@ -283,7 +307,13 @@ export const seedCaregivers: Caregiver[] = [
     relation: 'Son',
     email: 'rohan@example.com',
     active: false,
-    permissions: { routines: true, memories: false, insights: false, profile: true },
+    permissions: {
+      routines: true,
+      memories: false,
+      insights: false,
+      profile: true,
+      location: false,
+    },
   },
 ];
 
