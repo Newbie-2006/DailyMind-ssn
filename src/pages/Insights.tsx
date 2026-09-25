@@ -71,8 +71,8 @@ export function Insights() {
           body={t('insights.empty.body')}
         />
       ) : (
-        <div className="space-y-6 px-5 pt-2">
-          <Card className="px-5 py-4.5">
+        <div className="dm-gutter space-y-6 pt-6">
+          <Card className="px-5 py-5">
             <div className="flex items-baseline justify-between gap-3">
               <div>
                 <p className="text-[0.8125rem] text-ink-faint">{t('insights.completed')}</p>

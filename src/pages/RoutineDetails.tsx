@@ -74,7 +74,7 @@ export function RoutineDetails() {
         }
       />
 
-      <div className="space-y-6 px-5 pt-2">
+      <div className="dm-gutter space-y-6 pt-6">
         <div className="flex items-center gap-4">
           <span
             aria-hidden="true"

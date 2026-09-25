@@ -69,7 +69,7 @@ export function Profile() {
     <div className="pb-10">
       <LargeHeader title={t('profile.title')} />
 
-      <div className="space-y-6 px-5 pt-1">
+      <div className="dm-gutter space-y-6 pt-4">
         <div className="flex flex-col items-center pt-2 pb-1 text-center">
           <span className="size-24 overflow-hidden rounded-full bg-sage-wash">
             {settings.avatar ? (

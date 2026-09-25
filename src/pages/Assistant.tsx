@@ -100,7 +100,7 @@ export function Assistant() {
     <div className="flex min-h-full flex-1 flex-col">
       <PageHeader title={t('assistant.title')} />
 
-      <div className="flex-1 space-y-4 px-5 pt-2 pb-4">
+      <div className="dm-gutter flex-1 space-y-4 pt-6 pb-4">
         <AssistantBubble reply={greeting} time={openedAt} />
 
         {turns.map((turn) =>
@@ -126,7 +126,7 @@ export function Assistant() {
         <div ref={endRef} />
       </div>
 
-      <div className="safe-bottom sticky bottom-0 space-y-3 bg-canvas/95 px-5 pt-3 pb-4 backdrop-blur-sm">
+      <div className="dm-gutter sticky bottom-0 space-y-3 bg-canvas/95 pt-3 pb-4 backdrop-blur-sm">
         {suggestions.length > 0 ? (
           <SuggestionRow suggestions={suggestions} onPick={(text) => void send(text)} />
         ) : null}

@@ -52,7 +52,7 @@ export function NotificationSettingsPage() {
     <div className="pb-10">
       <PageHeader title={t('notifications.title')} onBack fallbackTo="/profile" />
 
-      <div className="space-y-6 px-5 pt-2">
+      <div className="dm-gutter space-y-6 pt-6">
         {/* Permission comes first: nothing below it matters until it is granted. */}
         {!checking && permission === 'unsupported' ? (
           <Card surface="beige" className="flex items-start gap-3 px-4 py-4">

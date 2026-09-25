@@ -2,6 +2,7 @@ import { createContext } from 'react';
 import type {
   Caregiver,
   CaregiverPermissions,
+  CaregiverSession,
   CompletionLog,
   ISODate,
   LocationFix,
@@ -42,6 +43,12 @@ export interface AppDataActions {
   updateCaregiver(id: string, patch: Partial<Omit<Caregiver, 'id'>>): void;
   setCaregiverPermission(id: string, key: keyof CaregiverPermissions, value: boolean): void;
   removeCaregiver(id: string): void;
+  /** Issues a fresh sign-in code, replacing any previous one. */
+  issueAccessCode(id: string): string;
+  revokeAccessCode(id: string): void;
+
+  signInCaregiver(session: CaregiverSession): void;
+  signOutCaregiver(): void;
 
   /** Restores the sample content. Used from Profile. */
   resetToSample(): void;
@@ -55,6 +62,7 @@ export interface AppDataValue {
   settings: Settings;
   caregivers: Caregiver[];
   location: LocationState;
+  caregiverSession: CaregiverSession | null;
   /** False until the first read from storage has completed. */
   ready: boolean;
   actions: AppDataActions;

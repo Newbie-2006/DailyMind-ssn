@@ -71,7 +71,7 @@ export function MemoryDetails() {
         }
       />
 
-      <div className="px-5">
+      <div className="dm-gutter">
         <MemoryImage
           src={memory.image}
           alt={memory.title}
@@ -81,7 +81,7 @@ export function MemoryDetails() {
         />
       </div>
 
-      <div className="space-y-6 px-5 pt-5">
+      <div className="dm-gutter space-y-6 pt-6">
         <div>
           <span className="inline-flex rounded-full bg-sage-wash px-2.5 py-1 text-[0.75rem] text-forest-soft">
             {categoryLabel(memory.category, t)}
@@ -124,7 +124,7 @@ export function MemoryDetails() {
           on its own - the person has to say yes.
         */}
         {anniversary && !existingReminder ? (
-          <Card surface="sage" className="px-5 py-4.5">
+          <Card surface="sage" className="px-5 py-5">
             <div className="flex items-start gap-3">
               <span
                 aria-hidden="true"

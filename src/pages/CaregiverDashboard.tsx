@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { ChevronRight, Eye, MapPin } from 'lucide-react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
+import type { Caregiver } from '../types';
 import { useAppData } from '../hooks/useAppData';
 import { authorizeLocationRead, canAccess } from '../services/caregiverAccess';
 import { occurrencesFor, progressFor } from '../services/routineService';
 import { nextReminderToday } from '../services/notificationService';
 import { formatTime, today } from '../utils/date';
 import { initials } from '../utils/format';
-import { PageHeader } from '../components/PageHeader';
 import { Card, SectionTitle } from '../components/ui/Card';
 import { ProgressBar } from '../components/ProgressCard';
 import { StatusDot } from '../components/StatusDot';
@@ -23,16 +23,16 @@ import { formatRelativeTime, isStale } from '../i18n/relativeTime';
  * this is a preview rather than a separate caregiver login.
  */
 export function CaregiverDashboard() {
-  const { caregiverId } = useParams<{ caregiverId: string }>();
+  // Supplied by the caregiver shell, which has already verified the session.
+  const caregiver = useOutletContext<Caregiver>();
   const { caregivers, settings, routines, completions, location } = useAppData();
   const { t } = useTranslation();
 
   const date = today();
-  const caregiver = caregivers.find((entry) => entry.id === caregiverId);
 
   const access = useMemo(
-    () => ({ caregiverId: caregiverId ?? '', caregivers, settings }),
-    [caregiverId, caregivers, settings],
+    () => ({ caregiverId: caregiver.id, caregivers, settings }),
+    [caregiver.id, caregivers, settings],
   );
 
   const routinesVisible = canAccess(access, 'routines').allowed;
@@ -43,15 +43,11 @@ export function CaregiverDashboard() {
   const remaining = occurrences.filter((occurrence) => !occurrence.completed).length;
   const next = nextReminderToday(routines, date);
 
-  if (!caregiver) return <Navigate to="/caregivers" replace />;
-
   const sharingActive = settings.sharingEnabled && caregiver.active;
 
   return (
     <div className="pb-10">
-      <PageHeader title={t('dashboard.title')} onBack fallbackTo="/caregivers" />
-
-      <div className="space-y-6 px-5 pt-2">
+      <div className="dm-gutter space-y-6 pt-6">
         <Card surface="beige" className="flex items-start gap-3 px-4 py-4">
           <Eye
             size={16}
@@ -60,7 +56,7 @@ export function CaregiverDashboard() {
             className="mt-0.5 shrink-0 text-ink-soft"
           />
           <p className="text-[0.8125rem] leading-relaxed text-ink-soft">
-            {t('dashboard.previewNotice', { name: caregiver.name })}
+            {t('caregiverArea.signedInAs', { name: caregiver.name })}
           </p>
         </Card>
 
@@ -89,7 +85,7 @@ export function CaregiverDashboard() {
         <section>
           <SectionTitle>{t('dashboard.dailyTasks')}</SectionTitle>
           {routinesVisible ? (
-            <Card className="px-5 py-4.5">
+            <Card className="px-5 py-5">
               <div className="flex items-baseline justify-between gap-3">
                 <p className="text-[0.9375rem] text-ink">
                   {t('dashboard.completedCount', {
@@ -177,7 +173,7 @@ export function CaregiverDashboard() {
                   {formatRelativeTime(locationRead.fix.timestamp, t)}
                 </p>
                 <Link
-                  to={`/caregivers/${caregiver.id}/location`}
+                  to="/caregiver/location"
                   className="tap mt-3.5 flex min-h-12 items-center justify-center gap-1.5 rounded-full bg-forest text-[0.875rem] font-medium text-canvas active:scale-[0.99]"
                 >
                   <MapPin size={16} strokeWidth={1.9} aria-hidden="true" />

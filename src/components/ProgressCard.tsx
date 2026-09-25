@@ -27,7 +27,7 @@ export function ProgressCard({ progress }: { progress: DayProgress }) {
   const { t } = useTranslation();
 
   return (
-    <Card className="px-5 py-4.5">
+    <Card className="px-5 py-5">
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-[1.0625rem] font-semibold tracking-[-0.01em] text-ink">
           {t('progress.title')}

@@ -592,6 +592,39 @@ export const en = {
   'time.daysAgo_other': '{{count}} days ago',
 
   // ---------------------------------------------------------------- errors
+  // ------------------------------------------------------------- app shell
+  'app.name': 'DailyMind',
+  'app.notificationsLabel': 'Notifications',
+
+  // --------------------------------------------------------- caregiver sign-in
+  'welcome.caregiverLink': 'I am a caregiver',
+  'caregivers.accessSection': 'Sign-in code',
+  'caregivers.accessBody':
+    'Give this code to {{name}} along with their email. They sign in on their own device to see what you have switched on.',
+  'caregivers.codeLabel': 'Access code',
+  'caregivers.noCode': 'No code yet',
+  'caregivers.generateCode': 'Create a code',
+  'caregivers.regenerateCode': 'Create a new code',
+  'caregivers.revokeCode': 'Revoke code',
+  'caregivers.codeCreatedToast': 'Access code created',
+  'caregivers.codeRevokedToast': 'Access code revoked',
+  'caregiverLogin.title': 'Caregiver sign in',
+  'caregiverLogin.intro': 'Enter the email and access code the person you care for gave you.',
+  'caregiverLogin.email': 'Email',
+  'caregiverLogin.code': 'Access code',
+  'caregiverLogin.codePlaceholder': 'ABC123',
+  'caregiverLogin.signIn': 'Sign in',
+  'caregiverLogin.errorInvalid': 'That email and code do not match. Please check both and try again.',
+  'caregiverLogin.errorPaused': 'Your access is paused. Ask them to switch sharing back on.',
+  'caregiverLogin.errorSharingOff': 'Sharing is turned off at the moment. Ask them to turn it back on.',
+  'caregiverLogin.backToApp': 'Back to DailyMind',
+  'caregiverLogin.localOnly':
+    'This signs you in on this device only. DailyMind has no account server in this version.',
+  'caregiverArea.title': 'Caregiver',
+  'caregiverArea.signedInAs': 'Signed in as {{name}}',
+  'caregiverArea.signOut': 'Sign out',
+  'caregiverArea.signedOutToast': 'Signed out',
+
   'error.generic': 'Something did not work. Please try again.',
   'error.network': "We couldn't reach the network. Please check your connection.",
   'error.locationUpdate':

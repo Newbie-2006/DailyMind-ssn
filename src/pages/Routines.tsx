@@ -52,7 +52,7 @@ export function Routines() {
   );
 
   return (
-    <div className="pb-8">
+    <div className="pb-10">
       <LargeHeader
         title={t('routines.title')}
         actions={
@@ -67,7 +67,7 @@ export function Routines() {
         }
       />
 
-      <div className="space-y-6 px-5 pt-1">
+      <div className="dm-gutter space-y-6 pt-4">
         <section aria-label={t('routines.chooseDay')}>
           <div className="mb-1.5 flex items-center justify-between">
             <IconButton

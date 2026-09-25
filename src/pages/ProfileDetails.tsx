@@ -26,7 +26,7 @@ export function PersonalInformation() {
     <div className="pb-10">
       <PageHeader title={t('personal.title')} onBack fallbackTo="/profile" />
 
-      <div className="space-y-5 px-5 pt-2">
+      <div className="dm-gutter space-y-5 pt-6">
         <TextField
           label={t('personal.name')}
           value={name}
@@ -70,7 +70,7 @@ export function HelpSupport() {
     <div className="pb-10">
       <PageHeader title={t('help.title')} onBack fallbackTo="/profile" />
 
-      <div className="space-y-6 px-5 pt-2">
+      <div className="dm-gutter space-y-6 pt-6">
         <section>
           <SectionTitle>{t('help.gettingStarted')}</SectionTitle>
           <Card className="divide-y divide-line-soft">

@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { LayoutDashboard, Plus, Trash2, Users } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { KeyRound, Plus, Trash2, Users } from 'lucide-react';
 import type { Caregiver, CaregiverPermissions } from '../types';
 import { useAppData } from '../hooks/useAppData';
 import { initials } from '../utils/format';
@@ -75,7 +74,7 @@ export function CaregiverAccess() {
         }
       />
 
-      <div className="space-y-6 px-5 pt-2">
+      <div className="dm-gutter space-y-6 pt-6">
         <Card surface="sage" className="flex items-start gap-3 px-4 py-4">
           <Users
             size={18}
@@ -172,15 +171,59 @@ export function CaregiverAccess() {
                   ))}
                 </div>
 
-                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line-soft pt-3.5">
-                  <Link
-                    to={`/caregivers/${caregiver.id}/dashboard`}
-                    className="tap inline-flex min-h-10 items-center gap-1.5 rounded-full bg-sage-wash px-3.5 text-[0.8125rem] font-medium text-forest-deep"
-                  >
-                    <LayoutDashboard size={15} strokeWidth={1.8} aria-hidden="true" />
-                    {t('caregivers.viewDashboard')}
-                  </Link>
+                {/*
+                  The sign-in code. This is what turns a row in a list into an
+                  account the caregiver can actually use on their own phone.
+                */}
+                <div className="mt-3 border-t border-line-soft pt-3.5">
+                  <h3 className="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-medium text-ink-soft">
+                    <KeyRound size={14} strokeWidth={1.8} aria-hidden="true" />
+                    {t('caregivers.accessSection')}
+                  </h3>
+                  <p className="text-[0.8125rem] leading-relaxed text-ink-faint">
+                    {t('caregivers.accessBody', { name: caregiver.name })}
+                  </p>
 
+                  <div className="mt-3 flex items-center gap-3">
+                    <span className="flex-1 rounded-2xl bg-surface-sunk px-4 py-3 text-center font-mono text-[1.0625rem] tracking-[0.3em] text-ink">
+                      {caregiver.accessCode ?? (
+                        <span className="font-sans tracking-normal text-ink-faint">
+                          {t('caregivers.noCode')}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        actions.issueAccessCode(caregiver.id);
+                        notify(t('caregivers.codeCreatedToast'));
+                      }}
+                      className="tap inline-flex min-h-10 items-center gap-1.5 rounded-full bg-sage-wash px-3.5 text-[0.8125rem] font-medium text-forest-deep"
+                    >
+                      {caregiver.accessCode
+                        ? t('caregivers.regenerateCode')
+                        : t('caregivers.generateCode')}
+                    </button>
+
+                    {caregiver.accessCode ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          actions.revokeAccessCode(caregiver.id);
+                          notify(t('caregivers.codeRevokedToast'));
+                        }}
+                        className="tap inline-flex min-h-10 items-center rounded-full px-3 text-[0.8125rem] text-ink-soft active:bg-surface-sunk"
+                      >
+                        {t('caregivers.revokeCode')}
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line-soft pt-3.5">
                   <button
                     type="button"
                     onClick={() => setRemoving(caregiver)}

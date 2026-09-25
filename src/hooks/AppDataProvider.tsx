@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import type {
   Caregiver,
   CaregiverPermissions,
+  CaregiverSession,
   CompletionLog,
   ISODate,
   LocationFix,
@@ -27,6 +28,7 @@ import { StorageKeys, clearAll, writeKey } from '../services/storage';
 import { clearInitialStateCache, initialState } from '../services/bootstrap';
 import { purgeRoutine, toggleCompletion } from '../services/routineService';
 import { createId } from '../utils/format';
+import { generateAccessCode } from '../services/caregiverAuth';
 import { AppDataContext, type AppDataValue } from './AppDataContext';
 
 /**
@@ -42,6 +44,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Settings>(() => initialState().settings);
   const [caregivers, setCaregivers] = useState<Caregiver[]>(() => initialState().caregivers);
   const [location, setLocation] = useState<LocationState>(() => initialState().location);
+  const [caregiverSession, setCaregiverSession] = useState<CaregiverSession | null>(
+    () => initialState().caregiverSession,
+  );
 
   // Each slice is written back whenever it changes. The first pass rewrites
   // what was just read, which costs nothing and keeps the rule simple.
@@ -72,6 +77,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     writeKey(StorageKeys.location, location);
   }, [location]);
+
+  useEffect(() => {
+    writeKey(StorageKeys.caregiverSession, caregiverSession);
+  }, [caregiverSession]);
 
   const addMemory = useCallback((draft: MemoryDraft): Memory => {
     const memory: Memory = { ...draft, id: createId('mem'), createdAt: new Date().toISOString() };
@@ -182,6 +191,35 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const removeCaregiver = useCallback((id: string) => {
     setCaregivers((current) => current.filter((caregiver) => caregiver.id !== id));
+    setCaregiverSession((current) => (current?.caregiverId === id ? null : current));
+  }, []);
+
+  const issueAccessCode = useCallback((id: string): string => {
+    const code = generateAccessCode();
+    setCaregivers((current) =>
+      current.map((caregiver) =>
+        caregiver.id === id ? { ...caregiver, accessCode: code } : caregiver,
+      ),
+    );
+    return code;
+  }, []);
+
+  const revokeAccessCode = useCallback((id: string) => {
+    setCaregivers((current) =>
+      current.map((caregiver) =>
+        caregiver.id === id ? { ...caregiver, accessCode: undefined } : caregiver,
+      ),
+    );
+    // Revoking the code ends any session that was using it.
+    setCaregiverSession((current) => (current?.caregiverId === id ? null : current));
+  }, []);
+
+  const signInCaregiver = useCallback((session: CaregiverSession) => {
+    setCaregiverSession(session);
+  }, []);
+
+  const signOutCaregiver = useCallback(() => {
+    setCaregiverSession(null);
   }, []);
 
   const resetToSample = useCallback(() => {
@@ -195,6 +233,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setSettings({ ...seedSettings, onboarded: true });
     setCaregivers(seedCaregivers);
     setLocation(seedLocation);
+    setCaregiverSession(null);
     writeKey(StorageKeys.seeded, true);
   }, []);
 
@@ -207,6 +246,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       settings,
       caregivers,
       location,
+      caregiverSession,
       ready: true,
       actions: {
         addMemory,
@@ -228,6 +268,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         updateCaregiver,
         setCaregiverPermission,
         removeCaregiver,
+        issueAccessCode,
+        revokeAccessCode,
+        signInCaregiver,
+        signOutCaregiver,
         resetToSample,
       },
     }),
@@ -239,6 +283,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       settings,
       caregivers,
       location,
+      caregiverSession,
       addMemory,
       updateMemory,
       deleteMemory,
@@ -258,6 +303,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updateCaregiver,
       setCaregiverPermission,
       removeCaregiver,
+      issueAccessCode,
+      revokeAccessCode,
+      signInCaregiver,
+      signOutCaregiver,
       resetToSample,
     ],
   );

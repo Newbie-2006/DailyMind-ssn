@@ -1,5 +1,5 @@
-import { ArrowRight, ChevronRight, Sparkle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowRight, Bell, ChevronRight, Sparkle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 import { useAppData, useDay } from '../hooks/useAppData';
 import { formatDateWithWeekday, timeOfDay, today } from '../utils/date';
@@ -10,7 +10,8 @@ import { RoutineItem } from '../components/RoutineItem';
 import { MemoryFeatureCard } from '../components/MemoryCard';
 import { Card, CardLink, SectionTitle } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
-import { ButtonLink } from '../components/ui/Button';
+import { ButtonLink, IconButton } from '../components/ui/Button';
+import { BrandBar } from '../components/TopBar';
 import { useTranslation } from '../i18n/useTranslation';
 import type { TranslateFn } from '../i18n/translate';
 
@@ -26,6 +27,7 @@ function contextualNote(now: Date, remaining: number, t: TranslateFn): string {
 export function Home() {
   const { memories, settings } = useAppData();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const date = today();
   const { occurrences, progress, toggleRoutine } = useDay(date);
 
@@ -34,41 +36,47 @@ export function Home() {
   const recent = useMemo(() => mostRecent(memories), [memories]);
 
   return (
-    <div className="pb-8">
-      <header className="safe-top px-5 pt-5 pb-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-[0.9375rem] text-ink-soft">
-              {t(`home.greeting.${timeOfDay(now)}`)},
-            </p>
-            <h1 className="font-display text-[1.875rem] leading-tight tracking-[-0.015em] text-ink">
-              {firstName(settings.name)}
-            </h1>
-            <p className="mt-1.5 text-[0.8125rem] text-ink-faint">{formatDateWithWeekday(date)}</p>
-          </div>
+    <div className="pb-10">
+      <BrandBar
+        actions={
+          <>
+            <IconButton
+              label={t('app.notificationsLabel')}
+              onClick={() => navigate('/profile/notifications')}
+            >
+              <Bell size={20} strokeWidth={1.8} aria-hidden="true" />
+            </IconButton>
 
-          <Link
-            to="/profile"
-            aria-label={t('home.openProfile')}
-            className="tap size-12 shrink-0 overflow-hidden rounded-full bg-sage-wash"
-          >
-            {settings.avatar ? (
-              <img
-                src={settings.avatar}
-                alt=""
-                className="size-full object-cover"
-                decoding="async"
-              />
-            ) : (
-              <span className="flex size-full items-center justify-center text-[0.875rem] font-medium text-forest">
-                {initials(settings.name)}
-              </span>
-            )}
-          </Link>
+            <Link
+              to="/profile"
+              aria-label={t('home.openProfile')}
+              className="tap size-9 shrink-0 overflow-hidden rounded-full bg-sage-wash"
+            >
+              {settings.avatar ? (
+                <img
+                  src={settings.avatar}
+                  alt=""
+                  className="size-full object-cover"
+                  decoding="async"
+                />
+              ) : (
+                <span className="flex size-full items-center justify-center text-[0.75rem] font-medium text-forest">
+                  {initials(settings.name)}
+                </span>
+              )}
+            </Link>
+          </>
+        }
+      />
+
+      <div className="dm-gutter space-y-6 pt-6">
+        <div>
+          <h2 className="font-display text-[1.75rem] leading-tight tracking-[-0.015em] text-ink">
+            {t(`home.greeting.${timeOfDay(now)}`)}, {firstName(settings.name)}
+          </h2>
+          <p className="mt-1.5 text-[0.875rem] text-ink-faint">{formatDateWithWeekday(date)}</p>
         </div>
-      </header>
 
-      <div className="space-y-6 px-5">
         <Card surface="sage" className="flex items-center gap-4 px-5 py-4">
           <p className="flex-1 font-display text-[1.0625rem] leading-snug text-forest-deep">
             {contextualNote(now, remaining.length, t)}

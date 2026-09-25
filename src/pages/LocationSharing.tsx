@@ -48,7 +48,7 @@ export function LocationSharing() {
     <div className="pb-10">
       <PageHeader title={t('location.title')} onBack fallbackTo="/profile" />
 
-      <div className="space-y-6 px-5 pt-2">
+      <div className="dm-gutter space-y-6 pt-6">
         <Card surface="sage" className="flex items-start gap-3 px-4 py-4">
           <MapPin
             size={18}

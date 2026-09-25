@@ -98,7 +98,7 @@ export function AddRoutine() {
         }
       />
 
-      <div className="space-y-6 px-5 pt-2">
+      <div className="dm-gutter space-y-6 pt-6">
         <div>
           <TextField
             label={t('routineForm.name')}

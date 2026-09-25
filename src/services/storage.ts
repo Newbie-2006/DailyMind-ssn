@@ -18,6 +18,7 @@ export const StorageKeys = {
   settings: 'settings',
   language: 'language',
   caregivers: 'caregivers',
+  caregiverSession: 'caregiverSession',
   seeded: 'seeded',
 } as const;
 

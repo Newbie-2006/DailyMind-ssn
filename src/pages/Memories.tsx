@@ -46,7 +46,7 @@ export function Memories() {
   };
 
   return (
-    <div className="pb-8">
+    <div className="pb-10">
       <LargeHeader
         title={t('memories.title')}
         actions={
@@ -72,7 +72,7 @@ export function Memories() {
         }
       />
 
-      <div className="space-y-4 px-5 pt-1">
+      <div className="dm-gutter space-y-4 pt-4">
         {searching ? (
           <div className="animate-fade">
             <label htmlFor="memory-search" className="sr-only">

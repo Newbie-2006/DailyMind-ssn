@@ -1,5 +1,5 @@
 import { ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { photos } from '../data/photos';
 import { useAppData } from '../hooks/useAppData';
 import { PlainShell } from '../layouts/AppShell';
@@ -59,7 +59,7 @@ export function Welcome() {
               <ArrowRight size={18} strokeWidth={2} aria-hidden="true" />
             </Button>
 
-            <p className="mt-5 text-center text-[0.875rem] text-ink-soft">
+            <p className="mt-6 text-center text-[0.875rem] text-ink-soft">
               {t('welcome.haveAccount')}{' '}
               <button
                 type="button"
@@ -68,6 +68,15 @@ export function Welcome() {
               >
                 {t('welcome.signIn')}
               </button>
+            </p>
+
+            <p className="mt-4 text-center">
+              <Link
+                to="/caregiver/login"
+                className="tap text-[0.875rem] text-ink-faint underline underline-offset-4"
+              >
+                {t('welcome.caregiverLink')}
+              </Link>
             </p>
           </div>
         </div>

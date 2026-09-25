@@ -1,5 +1,6 @@
 import type {
   Caregiver,
+  CaregiverSession,
   CompletionLog,
   LocationState,
   Memory,
@@ -25,6 +26,7 @@ export interface InitialState {
   settings: Settings;
   caregivers: Caregiver[];
   location: LocationState;
+  caregiverSession: CaregiverSession | null;
 }
 
 /**
@@ -44,6 +46,7 @@ function load(): InitialState {
       settings: readKey<Settings>(StorageKeys.settings, seedSettings),
       caregivers: readKey<Caregiver[]>(StorageKeys.caregivers, seedCaregivers),
       location: readKey<LocationState>(StorageKeys.location, seedLocation),
+      caregiverSession: readKey<CaregiverSession | null>(StorageKeys.caregiverSession, null),
     };
   }
 
@@ -55,6 +58,7 @@ function load(): InitialState {
     settings: seedSettings,
     caregivers: seedCaregivers,
     location: seedLocation,
+    caregiverSession: null,
   };
 
   writeKey(StorageKeys.memories, initial.memories);
@@ -64,6 +68,7 @@ function load(): InitialState {
   writeKey(StorageKeys.settings, initial.settings);
   writeKey(StorageKeys.caregivers, initial.caregivers);
   writeKey(StorageKeys.location, initial.location);
+  writeKey(StorageKeys.caregiverSession, initial.caregiverSession);
   writeKey(StorageKeys.seeded, true);
 
   return initial;

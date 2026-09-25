@@ -40,6 +40,43 @@
   --shadow-lift: 0 2px 4px rgba(38, 35, 32, 0.05), 0 14px 30px -14px rgba(38, 35, 32, 0.2);
 }
 
+/* ------------------------------------------------------------------
+   App shell metrics
+
+   Android 15+ draws the app edge to edge, so the WebView really does sit
+   under the status and gesture bars. These read the real window insets
+   rather than guessing at a padding that happens to look right on one
+   phone. On a desktop browser the insets are zero and the app simply
+   starts at the top of its frame.
+------------------------------------------------------------------- */
+:root {
+  --dm-safe-top: env(safe-area-inset-top, 0px);
+  --dm-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --dm-safe-left: env(safe-area-inset-left, 0px);
+  --dm-safe-right: env(safe-area-inset-right, 0px);
+
+  /* Horizontal margin every screen shares, so nothing meets a screen edge. */
+  --dm-gutter: 1.25rem;
+  /* Height of the app bar, used to offset sticky content beneath it. */
+  --dm-topbar: 3.5rem;
+}
+
+/*
+ * Running inside Capacitor. Some Android builds report a zero top inset even
+ * while drawing under the bar, so native gets a floor that matches a standard
+ * Android status bar. The browser never gets it.
+ */
+.dm-native {
+  --dm-safe-top: max(env(safe-area-inset-top, 0px), 1.5rem);
+  --dm-safe-bottom: max(env(safe-area-inset-bottom, 0px), 0.5rem);
+}
+
+@media (min-width: 26rem) {
+  :root {
+    --dm-gutter: 1.5rem;
+  }
+}
+
 @layer base {
   * {
     -webkit-tap-highlight-color: transparent;
@@ -103,11 +140,28 @@
   }
 
   .safe-top {
-    padding-top: env(safe-area-inset-top);
+    padding-top: var(--dm-safe-top);
   }
 
   .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: var(--dm-safe-bottom);
+  }
+
+  /* The shared horizontal margin. Used instead of a hand-picked px-* value. */
+  .dm-gutter {
+    padding-left: var(--dm-gutter);
+    padding-right: var(--dm-gutter);
+  }
+
+  /*
+   * Standard page body: the shared gutter, a consistent gap below the app bar,
+   * and enough room at the end that the last card clears the bottom bar.
+   */
+  .dm-page {
+    padding-left: var(--dm-gutter);
+    padding-right: var(--dm-gutter);
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
   }
 
   .no-scrollbar {

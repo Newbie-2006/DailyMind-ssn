@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ExternalLink, ShieldAlert } from 'lucide-react';
-import { Navigate, useParams } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
+import type { Caregiver } from '../types';
 import { useAppData } from '../hooks/useAppData';
 import { authorizeLocationRead } from '../services/caregiverAccess';
 import { mapsUrl } from '../services/locationService';
@@ -18,32 +19,21 @@ import { formatRelativeTime, isStale } from '../i18n/relativeTime';
  * render - the screen has no other path to them.
  */
 export function CaregiverLocation() {
-  const { caregiverId } = useParams<{ caregiverId: string }>();
+  // Supplied by the caregiver shell, which has already verified the session.
+  const caregiver = useOutletContext<Caregiver>();
   const { caregivers, settings, location } = useAppData();
   const { t } = useTranslation();
 
-  const caregiver = caregivers.find((entry) => entry.id === caregiverId);
-
   const result = useMemo(
-    () =>
-      authorizeLocationRead(
-        { caregiverId: caregiverId ?? '', caregivers, settings },
-        location,
-      ),
-    [caregiverId, caregivers, settings, location],
+    () => authorizeLocationRead({ caregiverId: caregiver.id, caregivers, settings }, location),
+    [caregiver.id, caregivers, settings, location],
   );
-
-  if (!caregiver) return <Navigate to="/caregivers" replace />;
 
   return (
     <div className="pb-10">
-      <PageHeader
-        title={t('locationView.title')}
-        onBack
-        fallbackTo={`/caregivers/${caregiver.id}/dashboard`}
-      />
+      <PageHeader title={t('locationView.title')} onBack fallbackTo="/caregiver" />
 
-      <div className="space-y-5 px-5 pt-2">
+      <div className="dm-gutter space-y-5 pt-6">
         {result.status === 'denied' ? (
           <Card className="flex items-start gap-3 px-4 py-4">
             <ShieldAlert

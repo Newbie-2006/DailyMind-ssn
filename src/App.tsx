@@ -4,6 +4,7 @@ import { AppDataProvider } from './hooks/AppDataProvider';
 import { I18nProvider } from './i18n/I18nProvider';
 import { ToastProvider } from './components/ui/Toast';
 import { AppShell } from './layouts/AppShell';
+import { CaregiverShell } from './layouts/CaregiverShell';
 import { LoadingState } from './components/ui/EmptyState';
 import { Entry } from './pages/Entry';
 import { Welcome } from './pages/Welcome';
@@ -30,6 +31,9 @@ const RoutineDetails = lazy(() =>
 const Insights = lazy(() => import('./pages/Insights').then((m) => ({ default: m.Insights })));
 const CaregiverAccess = lazy(() =>
   import('./pages/CaregiverAccess').then((m) => ({ default: m.CaregiverAccess })),
+);
+const CaregiverLogin = lazy(() =>
+  import('./pages/CaregiverLogin').then((m) => ({ default: m.CaregiverLogin })),
 );
 const CaregiverDashboard = lazy(() =>
   import('./pages/CaregiverDashboard').then((m) => ({ default: m.CaregiverDashboard })),
@@ -90,9 +94,14 @@ export default function App() {
                 <Route path="/profile/help" element={<HelpSupport />} />
 
                 <Route path="/caregivers" element={<CaregiverAccess />} />
-                <Route path="/caregivers/:caregiverId/dashboard" element={<CaregiverDashboard />} />
-                <Route path="/caregivers/:caregiverId/location" element={<CaregiverLocation />} />
                 <Route path="/privacy" element={<PrivacySharing />} />
+              </Route>
+
+              {/* The caregiver's own area, behind a sign in. */}
+              <Route path="/caregiver/login" element={<CaregiverLogin />} />
+              <Route element={<CaregiverShell />}>
+                <Route path="/caregiver" element={<CaregiverDashboard />} />
+                <Route path="/caregiver/location" element={<CaregiverLocation />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/home" replace />} />

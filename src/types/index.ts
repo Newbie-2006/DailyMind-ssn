@@ -119,6 +119,14 @@ export interface Caregiver {
   avatar?: string;
   active: boolean;
   permissions: CaregiverPermissions;
+  /** Issued by the person being cared for; absent until they create one. */
+  accessCode?: string;
+}
+
+/** A caregiver signed in on this device. */
+export interface CaregiverSession {
+  caregiverId: string;
+  signedInAt: string;
 }
 
 export interface NotificationSettings {

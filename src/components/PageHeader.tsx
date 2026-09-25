@@ -1,8 +1,12 @@
-import { ChevronLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import { IconButton } from './ui/Button';
-import { useTranslation } from '../i18n/useTranslation';
+import { PageBar } from './TopBar';
+
+/**
+ * Screen-level headers.
+ *
+ * Neither of these takes the status-bar inset any more - the shell does, once,
+ * so every screen sits below the system bar without repeating the calculation.
+ */
 
 export interface PageHeaderProps {
   title: string;
@@ -10,58 +14,17 @@ export interface PageHeaderProps {
   onBack?: boolean;
   fallbackTo?: string;
   actions?: ReactNode;
-  /** Sticks to the top while the page scrolls. */
-  sticky?: boolean;
 }
 
-export function PageHeader({
-  title,
-  onBack = false,
-  fallbackTo = '/home',
-  actions,
-  sticky = true,
-}: PageHeaderProps) {
-  const navigate = useNavigate();
-  const { t } = useTranslation();
-
-  const goBack = () => {
-    if (window.history.length > 1) navigate(-1);
-    else navigate(fallbackTo);
-  };
-
-  return (
-    <header
-      className={`safe-top z-20 bg-canvas/95 backdrop-blur-sm ${sticky ? 'sticky top-0' : ''}`}
-    >
-      <div className="flex min-h-[3.5rem] items-center gap-1 px-2 py-2">
-        {onBack ? (
-          <IconButton label={t('common.back')} onClick={goBack}>
-            <ChevronLeft size={22} strokeWidth={1.8} aria-hidden="true" />
-          </IconButton>
-        ) : (
-          <span className="w-2" aria-hidden="true" />
-        )}
-
-        <h1
-          className={`min-w-0 flex-1 truncate text-[1.125rem] font-semibold tracking-[-0.01em] text-ink ${
-            onBack ? 'text-center' : 'pl-2'
-          }`}
-        >
-          {title}
-        </h1>
-
-        <div className="flex items-center gap-0.5">
-          {actions}
-          {onBack && !actions ? <span className="w-11" aria-hidden="true" /> : null}
-        </div>
-      </div>
-    </header>
-  );
+/** A secondary screen: back control, page name, and its own actions. */
+export function PageHeader({ title, onBack = false, fallbackTo, actions }: PageHeaderProps) {
+  return <PageBar title={title} showBack={onBack} fallbackTo={fallbackTo} actions={actions} />;
 }
 
 /**
- * The larger editorial heading used on the top-level tabs, where the page is a
- * place rather than a step in a flow.
+ * The editorial heading used on the top-level tabs, where the screen is a place
+ * rather than a step in a flow. It keeps DailyMind's display face; only the
+ * spacing is shared with the rest of the shell.
  */
 export function LargeHeader({
   title,
@@ -73,13 +36,13 @@ export function LargeHeader({
   subtitle?: string;
 }) {
   return (
-    <header className="safe-top sticky top-0 z-20 bg-canvas/95 px-5 pt-3 pb-2 backdrop-blur-sm">
+    <header className="dm-gutter sticky top-0 z-20 bg-canvas/95 pt-4 pb-3 backdrop-blur-sm">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h1 className="font-display text-[1.75rem] leading-tight tracking-[-0.015em] text-ink">
             {title}
           </h1>
-          {subtitle ? <p className="mt-0.5 text-[0.875rem] text-ink-faint">{subtitle}</p> : null}
+          {subtitle ? <p className="mt-1 text-[0.875rem] text-ink-faint">{subtitle}</p> : null}
         </div>
         {actions ? <div className="flex shrink-0 items-center gap-1">{actions}</div> : null}
       </div>
