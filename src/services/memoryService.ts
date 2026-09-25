@@ -1,14 +1,21 @@
 import type { ISODate, Memory, MemoryCategory } from '../types';
 import { fromISODate, today } from '../utils/date';
+import type { TranslateFn } from '../i18n/translate';
 
 export type MemoryFilter = 'all' | MemoryCategory;
 
-export const memoryFilters: { id: MemoryFilter; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'photo', label: 'Photos' },
-  { id: 'people', label: 'People' },
-  { id: 'event', label: 'Events' },
-];
+export const memoryFilterIds: MemoryFilter[] = ['all', 'photo', 'people', 'event'];
+
+const filterLabelKeys = {
+  all: 'memories.filter.all',
+  photo: 'memories.filter.photos',
+  people: 'memories.filter.people',
+  event: 'memories.filter.events',
+} as const;
+
+export function memoryFilterOptions(t: TranslateFn): { id: MemoryFilter; label: string }[] {
+  return memoryFilterIds.map((id) => ({ id, label: t(filterLabelKeys[id]) }));
+}
 
 /** Newest memory first. */
 export function sortByDate(memories: Memory[]): Memory[] {
@@ -94,13 +101,13 @@ export function knownPeople(memories: Memory[]): string[] {
   return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name);
 }
 
-export function categoryLabel(category: MemoryCategory): string {
+export function categoryLabel(category: MemoryCategory, t: TranslateFn): string {
   switch (category) {
     case 'photo':
-      return 'Photo';
+      return t('memories.category.photo');
     case 'people':
-      return 'People';
+      return t('memories.category.people');
     case 'event':
-      return 'Event';
+      return t('memories.category.event');
   }
 }

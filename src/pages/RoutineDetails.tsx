@@ -3,8 +3,9 @@ import { CalendarRange, Check, Clock, Pencil, Trash2 } from 'lucide-react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useAppData } from '../hooks/useAppData';
 import { describeRepeat, occursOn } from '../services/routineService';
-import { addDays, formatTime, today, weekdayShort } from '../utils/date';
-import { percentOf, pluralize } from '../utils/format';
+import { addDays, formatDate, formatTime, today, weekdayShort } from '../utils/date';
+import { percentOf } from '../utils/format';
+import { useTranslation } from '../i18n/useTranslation';
 import { PageHeader } from '../components/PageHeader';
 import { RoutineIconGlyph } from '../components/RoutineIconGlyph';
 import { Button, IconButton } from '../components/ui/Button';
@@ -19,6 +20,7 @@ export function RoutineDetails() {
   const navigate = useNavigate();
   const { notify } = useToast();
   const { routines, completions, actions } = useAppData();
+  const { t } = useTranslation();
 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -47,7 +49,7 @@ export function RoutineDetails() {
   const removeRoutine = () => {
     actions.deleteRoutine(routine.id);
     setConfirmingDelete(false);
-    notify('Routine deleted');
+    notify(t('routineDetail.deletedToast'));
     navigate('/routines', { replace: true });
   };
 
@@ -60,12 +62,12 @@ export function RoutineDetails() {
         actions={
           <>
             <IconButton
-              label="Edit routine"
+              label={t('routineDetail.edit')}
               onClick={() => navigate(`/routines/${routine.id}/edit`)}
             >
               <Pencil size={18} strokeWidth={1.8} aria-hidden="true" />
             </IconButton>
-            <IconButton label="Delete routine" onClick={() => setConfirmingDelete(true)}>
+            <IconButton label={t('routineDetail.delete')} onClick={() => setConfirmingDelete(true)}>
               <Trash2 size={18} strokeWidth={1.8} aria-hidden="true" />
             </IconButton>
           </>
@@ -98,16 +100,16 @@ export function RoutineDetails() {
           <Card className="px-4 py-3.5">
             <p className="flex items-center gap-1.5 text-[0.8125rem] text-ink-faint">
               <Clock size={14} strokeWidth={1.7} aria-hidden="true" />
-              Time
+              {t('routineDetail.time')}
             </p>
             <p className="mt-1 text-[0.9375rem] text-ink">{formatTime(routine.time)}</p>
           </Card>
           <Card className="px-4 py-3.5">
             <p className="flex items-center gap-1.5 text-[0.8125rem] text-ink-faint">
               <CalendarRange size={14} strokeWidth={1.7} aria-hidden="true" />
-              Repeats
+              {t('routineDetail.repeats')}
             </p>
-            <p className="mt-1 text-[0.9375rem] text-ink">{describeRepeat(routine)}</p>
+            <p className="mt-1 text-[0.9375rem] text-ink">{describeRepeat(routine, t)}</p>
           </Card>
         </div>
 
@@ -120,28 +122,30 @@ export function RoutineDetails() {
             {completedToday ? (
               <>
                 <Check size={18} strokeWidth={2.2} aria-hidden="true" />
-                Completed today
+                {t('routineDetail.completedToday')}
               </>
             ) : (
-              'Mark as done today'
+              t('routineDetail.markDoneToday')
             )}
           </Button>
         ) : (
           <p className="text-center text-[0.875rem] text-ink-faint">
-            Not scheduled for today.
+            {t('routineDetail.notToday')}
           </p>
         )}
 
         <section>
           <h3 className="mb-3 text-[1.0625rem] font-semibold tracking-[-0.01em] text-ink">
-            Last two weeks
+            {t('routineDetail.lastTwoWeeks')}
           </h3>
 
           <Card className="px-4 py-4">
             <p className="text-[0.875rem] text-ink-soft">
-              Completed on {completedDays.length} of {scheduledDays.length}{' '}
-              {pluralize(scheduledDays.length, 'scheduled day')} (
-              {percentOf(completedDays.length, scheduledDays.length)}%).
+              {t('routineDetail.completedOn', {
+                completed: completedDays.length,
+                total: scheduledDays.length,
+                percent: percentOf(completedDays.length, scheduledDays.length),
+              })}
             </p>
 
             <ul className="mt-3.5 flex justify-between gap-1">
@@ -149,9 +153,13 @@ export function RoutineDetails() {
                 <li key={day.date} className="flex flex-1 flex-col items-center gap-1.5">
                   <span
                     title={day.date}
-                    aria-label={`${day.date}: ${
-                      !day.scheduled ? 'not scheduled' : day.completed ? 'completed' : 'not completed'
-                    }`}
+                    aria-label={
+                      !day.scheduled
+                        ? t('routineDetail.dayNotScheduled', { date: formatDate(day.date) })
+                        : day.completed
+                          ? t('routineDetail.dayCompleted', { date: formatDate(day.date) })
+                          : t('routineDetail.dayMissed', { date: formatDate(day.date) })
+                    }
                     className={`flex h-7 w-full max-w-[1.125rem] items-center justify-center rounded-md ${
                       !day.scheduled
                         ? 'bg-surface-sunk'
@@ -179,15 +187,15 @@ export function RoutineDetails() {
       <Modal
         open={confirmingDelete}
         onClose={() => setConfirmingDelete(false)}
-        title="Delete this routine?"
-        description="It will be removed from your days, along with its completion history."
+        title={t('routineDetail.confirmDeleteTitle')}
+        description={t('routineDetail.confirmDeleteBody')}
         actions={
           <>
             <Button size="lg" onClick={removeRoutine}>
-              Delete routine
+              {t('routineDetail.delete')}
             </Button>
             <Button size="lg" variant="quiet" onClick={() => setConfirmingDelete(false)}>
-              Keep it
+              {t('routineDetail.keepIt')}
             </Button>
           </>
         }

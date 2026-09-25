@@ -1,29 +1,33 @@
 import { NavLink } from 'react-router-dom';
 import { CalendarCheck, House, Images, MessageCircle, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useTranslation } from '../i18n/useTranslation';
+import type { TranslationKey } from '../i18n/translate';
 
 interface NavItem {
   to: string;
-  label: string;
+  labelKey: TranslationKey;
   icon: LucideIcon;
 }
 
 const items: NavItem[] = [
-  { to: '/home', label: 'Home', icon: House },
-  { to: '/memories', label: 'Memories', icon: Images },
-  { to: '/routines', label: 'Routines', icon: CalendarCheck },
-  { to: '/assistant', label: 'Assistant', icon: MessageCircle },
-  { to: '/profile', label: 'Profile', icon: User },
+  { to: '/home', labelKey: 'nav.home', icon: House },
+  { to: '/memories', labelKey: 'nav.memories', icon: Images },
+  { to: '/routines', labelKey: 'nav.routines', icon: CalendarCheck },
+  { to: '/assistant', labelKey: 'nav.assistant', icon: MessageCircle },
+  { to: '/profile', labelKey: 'nav.profile', icon: User },
 ];
 
 export function BottomNavigation() {
+  const { t } = useTranslation();
+
   return (
     <nav
-      aria-label="Main"
+      aria-label={t('nav.main')}
       className="safe-bottom sticky bottom-0 z-30 border-t border-line-soft bg-surface/95 backdrop-blur-sm"
     >
       <ul className="mx-auto flex max-w-[30rem] items-stretch justify-between px-1.5">
-        {items.map(({ to, label, icon: Icon }) => (
+        {items.map(({ to, labelKey, icon: Icon }) => (
           <li key={to} className="flex-1">
             <NavLink
               to={to}
@@ -43,7 +47,7 @@ export function BottomNavigation() {
                     <Icon size={19} strokeWidth={isActive ? 2.1 : 1.7} aria-hidden="true" />
                   </span>
                   <span className={`text-[0.6875rem] ${isActive ? 'font-medium' : ''}`}>
-                    {label}
+                    {t(labelKey)}
                   </span>
                 </>
               )}

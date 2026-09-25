@@ -1,5 +1,6 @@
 import type { ISODate } from '../types';
 import { dayOfMonth, formatDateLong, today, weekdayShort } from '../utils/date';
+import { useTranslation } from '../i18n/useTranslation';
 
 export interface DateSelectorProps {
   dates: ISODate[];
@@ -12,9 +13,10 @@ export interface DateSelectorProps {
 /** The week strip at the top of Routines. */
 export function DateSelector({ dates, selected, onSelect, pending }: DateSelectorProps) {
   const now = today();
+  const { t } = useTranslation();
 
   return (
-    <div className="flex justify-between gap-1" role="group" aria-label="Choose a day">
+    <div className="flex justify-between gap-1" role="group" aria-label={t('routines.chooseDay')}>
       {dates.map((date) => {
         const isSelected = date === selected;
         const isToday = date === now;

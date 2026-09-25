@@ -6,7 +6,8 @@ import type {
   Routine,
   RoutineOccurrence,
 } from '../types';
-import { timeToMinutes, weekdayOf } from '../utils/date';
+import { timeToMinutes, weekdayNameFor, weekdayOf } from '../utils/date';
+import type { TranslateFn } from '../i18n/translate';
 import { percentOf } from '../utils/format';
 
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
@@ -27,19 +28,18 @@ export function daysForRepeat(repeat: RepeatRule, custom: number[]): number[] {
   }
 }
 
-export function describeRepeat(routine: Routine): string {
+export function describeRepeat(routine: Routine, t: TranslateFn): string {
   switch (routine.repeat) {
     case 'daily':
-      return 'Every day';
+      return t('repeat.describe.daily');
     case 'weekdays':
-      return 'Monday to Friday';
+      return t('repeat.describe.weekdays');
     case 'weekends':
-      return 'Saturday and Sunday';
+      return t('repeat.describe.weekends');
     case 'custom': {
-      const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      if (routine.days.length === 0) return 'No days selected';
-      if (routine.days.length === 7) return 'Every day';
-      return routine.days.map((d) => names[d]).join(', ');
+      if (routine.days.length === 0) return t('repeat.describe.none');
+      if (routine.days.length === 7) return t('repeat.describe.daily');
+      return routine.days.map((day) => weekdayNameFor(day)).join(', ');
     }
   }
 }

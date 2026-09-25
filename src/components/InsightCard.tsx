@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { DayProgress, Observation, ObservationTone } from '../types';
 import { weekdayShort } from '../utils/date';
 import { Card } from './ui/Card';
+import { useTranslation } from '../i18n/useTranslation';
 
 const toneIcon: Record<ObservationTone, typeof Sprout> = {
   positive: Sprout,
@@ -62,8 +63,10 @@ export function InsightTeaser({ title, body, to }: { title: string; body: string
  * for screen readers, so the shape is never the only way to read it.
  */
 export function CompletionChart({ days }: { days: DayProgress[] }) {
+  const { t } = useTranslation();
+
   return (
-    <div className="flex items-end justify-between gap-2" role="list" aria-label="Routine completion by day">
+    <div className="flex items-end justify-between gap-2" role="list" aria-label={t('insights.chartAria')}>
       {days.map((day) => {
         // A sliver of a bar always shows, so an empty day reads as "nothing
         // recorded" rather than as a rendering fault.
@@ -72,7 +75,11 @@ export function CompletionChart({ days }: { days: DayProgress[] }) {
           <div
             key={day.date}
             role="listitem"
-            aria-label={`${weekdayShort(day.date)}: ${day.completed} of ${day.total} completed`}
+            aria-label={t('insights.chartDay', {
+              day: weekdayShort(day.date),
+              completed: day.completed,
+              total: day.total,
+            })}
             className="flex min-w-0 flex-1 flex-col items-center gap-2"
           >
             <div className="flex h-24 w-full items-end justify-center">

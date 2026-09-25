@@ -4,6 +4,7 @@ import type { ISODate } from '../types';
 import { today } from '../utils/date';
 import { occurrencesFor, progressFor } from '../services/routineService';
 import { buildInsights } from '../services/insightsService';
+import { useTranslation } from '../i18n/useTranslation';
 import type { InsightRange } from '../types';
 
 export function useAppData(): AppDataValue {
@@ -48,5 +49,9 @@ export function useDay(date: ISODate = today()) {
 
 export function useInsights(range: InsightRange = 'week') {
   const { routines, completions } = useAppData();
-  return useMemo(() => buildInsights(routines, completions, range), [routines, completions, range]);
+  const { t } = useTranslation();
+  return useMemo(
+    () => buildInsights(routines, completions, t, range),
+    [routines, completions, t, range],
+  );
 }

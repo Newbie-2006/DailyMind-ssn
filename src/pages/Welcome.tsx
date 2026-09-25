@@ -4,10 +4,12 @@ import { photos } from '../data/photos';
 import { useAppData } from '../hooks/useAppData';
 import { PlainShell } from '../layouts/AppShell';
 import { Button } from '../components/ui/Button';
+import { useTranslation } from '../i18n/useTranslation';
 
 export function Welcome() {
   const navigate = useNavigate();
   const { actions } = useAppData();
+  const { t } = useTranslation();
 
   const start = () => {
     actions.completeOnboarding();
@@ -20,7 +22,7 @@ export function Welcome() {
         <div className="relative h-[44vh] min-h-[16rem] w-full shrink-0 overflow-hidden">
           <img
             src={photos.hero}
-            alt="A cup of tea resting on an open book beside a soft knitted blanket"
+            alt={t('welcome.heroAlt')}
             className="size-full object-cover"
             fetchPriority="high"
             decoding="async"
@@ -39,32 +41,32 @@ export function Welcome() {
             </h1>
 
             <p className="mt-5 font-display text-[1.5rem] leading-[1.35] tracking-[-0.01em] text-ink">
-              Remember.
+              {t('welcome.tagline1')}
               <br />
-              Plan.
+              {t('welcome.tagline2')}
               <br />
-              Live Better.
+              {t('welcome.tagline3')}
             </p>
 
             <p className="mt-5 max-w-[19rem] text-[0.9375rem] leading-relaxed text-ink-soft">
-              Your personal memory and routine companion.
+              {t('welcome.subtitle')}
             </p>
           </div>
 
           <div className="mt-8">
             <Button size="lg" onClick={start}>
-              Get Started
+              {t('welcome.getStarted')}
               <ArrowRight size={18} strokeWidth={2} aria-hidden="true" />
             </Button>
 
             <p className="mt-5 text-center text-[0.875rem] text-ink-soft">
-              Already have an account?{' '}
+              {t('welcome.haveAccount')}{' '}
               <button
                 type="button"
                 onClick={start}
                 className="tap font-medium text-forest underline underline-offset-4"
               >
-                Sign in
+                {t('welcome.signIn')}
               </button>
             </p>
           </div>

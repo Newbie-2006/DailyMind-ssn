@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 export function EmptyState({
   icon,
@@ -27,12 +28,14 @@ export function EmptyState({
 }
 
 /** Quiet placeholder used while the first read from storage settles. */
-export function LoadingState({ label = 'Loading' }: { label?: string }) {
+export function LoadingState({ label }: { label?: string }) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center justify-center px-6 py-16" role="status" aria-live="polite">
       <span className="flex items-center gap-2.5 text-[0.9375rem] text-ink-faint">
         <span className="size-2 animate-pulse rounded-full bg-sage" aria-hidden="true" />
-        {label}
+        {label ?? t('common.loading')}
       </span>
     </div>
   );

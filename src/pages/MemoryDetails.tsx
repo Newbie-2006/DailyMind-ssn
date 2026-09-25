@@ -3,7 +3,7 @@ import { BellPlus, CalendarDays, Pencil, Trash2, Users } from 'lucide-react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useAppData } from '../hooks/useAppData';
 import { anniversaryWithin, categoryLabel } from '../services/memoryService';
-import { formatDateLong, formatRelativeDay } from '../utils/date';
+import { formatDateLong } from '../utils/date';
 import { listToSentence } from '../utils/format';
 import { PageHeader } from '../components/PageHeader';
 import { MemoryImage } from '../components/MemoryImage';
@@ -12,12 +12,14 @@ import { Card } from '../components/ui/Card';
 import { Tag } from '../components/ui/Tag';
 import { Modal } from '../components/ui/Modal';
 import { useToast } from '../components/ui/toastContext';
+import { useTranslation } from '../i18n/useTranslation';
 
 export function MemoryDetails() {
   const { memoryId } = useParams<{ memoryId: string }>();
   const navigate = useNavigate();
   const { notify } = useToast();
   const { memories, reminders, actions } = useAppData();
+  const { t } = useTranslation();
 
   const [confirmingReminder, setConfirmingReminder] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -41,13 +43,13 @@ export function MemoryDetails() {
       memoryId: memory.id,
     });
     setConfirmingReminder(false);
-    notify('Reminder created');
+    notify(t('memoryDetail.reminderCreatedToast'));
   };
 
   const removeMemory = () => {
     actions.deleteMemory(memory.id);
     setConfirmingDelete(false);
-    notify('Memory deleted');
+    notify(t('memoryDetail.deletedToast'));
     navigate('/memories', { replace: true });
   };
 
@@ -59,10 +61,10 @@ export function MemoryDetails() {
         fallbackTo="/memories"
         actions={
           <>
-            <IconButton label="Edit memory" onClick={() => navigate(`/memories/${memory.id}/edit`)}>
+            <IconButton label={t('memoryDetail.edit')} onClick={() => navigate(`/memories/${memory.id}/edit`)}>
               <Pencil size={18} strokeWidth={1.8} aria-hidden="true" />
             </IconButton>
-            <IconButton label="Delete memory" onClick={() => setConfirmingDelete(true)}>
+            <IconButton label={t('memoryDetail.delete')} onClick={() => setConfirmingDelete(true)}>
               <Trash2 size={18} strokeWidth={1.8} aria-hidden="true" />
             </IconButton>
           </>
@@ -82,7 +84,7 @@ export function MemoryDetails() {
       <div className="space-y-6 px-5 pt-5">
         <div>
           <span className="inline-flex rounded-full bg-sage-wash px-2.5 py-1 text-[0.75rem] text-forest-soft">
-            {categoryLabel(memory.category)}
+            {categoryLabel(memory.category, t)}
           </span>
           <h2 className="mt-3 font-display text-[1.625rem] leading-tight tracking-[-0.015em] text-ink">
             {memory.title}
@@ -100,13 +102,15 @@ export function MemoryDetails() {
         {memory.people.length > 0 ? (
           <p className="flex items-start gap-2 text-[0.875rem] text-ink-soft">
             <Users size={16} strokeWidth={1.7} aria-hidden="true" className="mt-0.5 shrink-0" />
-            <span>With {listToSentence(memory.people)}</span>
+            <span>{t('memoryDetail.with', { people: listToSentence(memory.people) })}</span>
           </p>
         ) : null}
 
         {memory.tags.length > 0 ? (
           <div>
-            <h3 className="mb-2 text-[0.8125rem] font-medium text-ink-soft">Tags</h3>
+            <h3 className="mb-2 text-[0.8125rem] font-medium text-ink-soft">
+              {t('memoryDetail.tags')}
+            </h3>
             <div className="flex flex-wrap gap-2">
               {memory.tags.map((tag) => (
                 <Tag key={tag}>{tag}</Tag>
@@ -130,18 +134,24 @@ export function MemoryDetails() {
               </span>
               <div className="min-w-0">
                 <p className="text-[0.9375rem] leading-relaxed text-forest-deep">
-                  DailyMind noticed a date in this memory.
+                  {t('memoryDetail.noticedDate')}
                 </p>
                 <p className="mt-1.5 text-[0.875rem] leading-relaxed text-ink-soft">
-                  Would you like a reminder for {formatRelativeDay(anniversary.date)}
-                  {anniversary.years > 0 ? `, ${anniversary.years} years on` : ''}?
+                  {anniversary.years > 0
+                    ? t('memoryDetail.reminderOfferYears', {
+                        date: formatDateLong(anniversary.date),
+                        years: anniversary.years,
+                      })
+                    : t('memoryDetail.reminderOffer', {
+                        date: formatDateLong(anniversary.date),
+                      })}
                 </p>
                 <Button
                   variant="primary"
                   className="mt-3.5"
                   onClick={() => setConfirmingReminder(true)}
                 >
-                  Create reminder
+                  {t('memoryDetail.createReminder')}
                 </Button>
               </div>
             </div>
@@ -157,7 +167,9 @@ export function MemoryDetails() {
               <BellPlus size={17} strokeWidth={1.7} />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[0.875rem] text-ink">Reminder set</span>
+              <span className="block text-[0.875rem] text-ink">
+                {t('memoryDetail.reminderSet')}
+              </span>
               <span className="block text-[0.8125rem] text-ink-faint">
                 {formatDateLong(existingReminder.date)}
               </span>
@@ -166,11 +178,11 @@ export function MemoryDetails() {
               type="button"
               onClick={() => {
                 actions.deleteReminder(existingReminder.id);
-                notify('Reminder removed');
+                notify(t('memoryDetail.reminderRemovedToast'));
               }}
               className="tap min-h-10 shrink-0 rounded-full px-3 text-[0.8125rem] font-medium text-ink-soft active:bg-surface-sunk"
             >
-              Remove
+              {t('common.remove')}
             </button>
           </Card>
         ) : null}
@@ -179,26 +191,29 @@ export function MemoryDetails() {
           to="/memories"
           className="tap block text-center text-[0.875rem] font-medium text-forest underline-offset-4 hover:underline"
         >
-          Back to all memories
+          {t('memoryDetail.backToAll')}
         </Link>
       </div>
 
       <Modal
         open={confirmingReminder}
         onClose={() => setConfirmingReminder(false)}
-        title="Create this reminder?"
+        title={t('memoryDetail.confirmReminderTitle')}
         description={
           anniversary
-            ? `DailyMind will remind you about "${memory.title}" on ${formatDateLong(anniversary.date)}. Nothing else changes, and you can remove it at any time.`
+            ? t('memoryDetail.confirmReminderBody', {
+                title: memory.title,
+                date: formatDateLong(anniversary.date),
+              })
             : ''
         }
         actions={
           <>
             <Button size="lg" onClick={createReminder}>
-              Yes, create reminder
+              {t('memoryDetail.confirmReminderYes')}
             </Button>
             <Button size="lg" variant="quiet" onClick={() => setConfirmingReminder(false)}>
-              Not now
+              {t('common.notNow')}
             </Button>
           </>
         }
@@ -207,15 +222,15 @@ export function MemoryDetails() {
       <Modal
         open={confirmingDelete}
         onClose={() => setConfirmingDelete(false)}
-        title="Delete this memory?"
-        description="This removes it from DailyMind. It cannot be undone."
+        title={t('memoryDetail.confirmDeleteTitle')}
+        description={t('memoryDetail.confirmDeleteBody')}
         actions={
           <>
             <Button size="lg" onClick={removeMemory}>
-              Delete memory
+              {t('memoryDetail.delete')}
             </Button>
             <Button size="lg" variant="quiet" onClick={() => setConfirmingDelete(false)}>
-              Keep it
+              {t('memoryDetail.keepIt')}
             </Button>
           </>
         }

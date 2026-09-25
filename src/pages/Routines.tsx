@@ -3,8 +3,8 @@ import { BellRing, CalendarCheck, CalendarDays, ChevronLeft, ChevronRight, Plus 
 import { useNavigate } from 'react-router-dom';
 import { useAppData } from '../hooks/useAppData';
 import { occurrencesFor, progressFor } from '../services/routineService';
-import { addDays, formatRelativeDay, monthLabel, today, weekOf } from '../utils/date';
-import { pluralize } from '../utils/format';
+import { addDays, formatDate, monthLabel, relativeDayKey, today, weekOf } from '../utils/date';
+import { useTranslation } from '../i18n/useTranslation';
 import { LargeHeader } from '../components/PageHeader';
 import { DateSelector } from '../components/DateSelector';
 import { RoutineItem } from '../components/RoutineItem';
@@ -19,6 +19,7 @@ import { useToast } from '../components/ui/toastContext';
 export function Routines() {
   const navigate = useNavigate();
   const { notify } = useToast();
+  const { t } = useTranslation();
   const { routines, completions, reminders, actions } = useAppData();
   const insights = useInsights('week');
 
@@ -53,13 +54,13 @@ export function Routines() {
   return (
     <div className="pb-8">
       <LargeHeader
-        title="Routines"
+        title={t('routines.title')}
         actions={
           <>
-            <IconButton label="Go to today" onClick={() => setSelected(now)}>
+            <IconButton label={t('routines.goToToday')} onClick={() => setSelected(now)}>
               <CalendarDays size={20} strokeWidth={1.8} aria-hidden="true" />
             </IconButton>
-            <IconButton label="Add a routine" tone="filled" onClick={() => navigate('/routines/new')}>
+            <IconButton label={t('routines.addRoutine')} tone="filled" onClick={() => navigate('/routines/new')}>
               <Plus size={20} strokeWidth={2} aria-hidden="true" />
             </IconButton>
           </>
@@ -67,10 +68,10 @@ export function Routines() {
       />
 
       <div className="space-y-6 px-5 pt-1">
-        <section aria-label="Choose a day">
+        <section aria-label={t('routines.chooseDay')}>
           <div className="mb-1.5 flex items-center justify-between">
             <IconButton
-              label="Previous week"
+              label={t('routines.previousWeek')}
               onClick={() => setSelected(addDays(selected, -7))}
               className="size-9"
             >
@@ -78,7 +79,7 @@ export function Routines() {
             </IconButton>
             <span className="text-[0.875rem] font-medium text-ink-soft">{monthLabel(selected)}</span>
             <IconButton
-              label="Next week"
+              label={t('routines.nextWeek')}
               onClick={() => setSelected(addDays(selected, 7))}
               className="size-9"
             >
@@ -94,12 +95,17 @@ export function Routines() {
             action={
               progress.total > 0 ? (
                 <span className="text-[0.8125rem] tabular-nums text-ink-soft">
-                  {progress.completed} of {progress.total}
+                  {t('routines.countOf', {
+                    completed: progress.completed,
+                    total: progress.total,
+                  })}
                 </span>
               ) : undefined
             }
           >
-            {formatRelativeDay(selected)}
+            {relativeDayKey(selected)
+              ? t(`common.${relativeDayKey(selected)!}`)
+              : formatDate(selected)}
           </SectionTitle>
 
           {progress.total > 0 ? <ProgressBar percent={progress.percent} className="mb-4" /> : null}
@@ -108,12 +114,12 @@ export function Routines() {
             <Card className="px-2 py-2">
               <EmptyState
                 icon={<CalendarCheck size={24} strokeWidth={1.5} />}
-                title="Nothing on this day"
-                body="Routines you add will show up on the days they repeat."
+                title={t('routines.empty.title')}
+                body={t('routines.empty.body')}
                 action={
                   <Button onClick={() => navigate('/routines/new')}>
                     <Plus size={17} strokeWidth={2} aria-hidden="true" />
-                    Add routine
+                    {t('routines.addShort')}
                   </Button>
                 }
               />
@@ -137,7 +143,7 @@ export function Routines() {
 
         {dayReminders.length > 0 ? (
           <section>
-            <SectionTitle>Reminders</SectionTitle>
+            <SectionTitle>{t('routines.remindersSection')}</SectionTitle>
             <Card className="divide-y divide-line-soft">
               {dayReminders.map((reminder) => (
                 <div key={reminder.id} className="flex items-center gap-3 px-4 py-3.5">
@@ -154,11 +160,11 @@ export function Routines() {
                     type="button"
                     onClick={() => {
                       actions.deleteReminder(reminder.id);
-                      notify('Reminder removed');
+                      notify(t('memoryDetail.reminderRemovedToast'));
                     }}
                     className="tap min-h-10 shrink-0 rounded-full px-3 text-[0.8125rem] text-ink-soft active:bg-surface-sunk"
                   >
-                    Remove
+                    {t('common.remove')}
                   </button>
                 </div>
               ))}
@@ -167,16 +173,18 @@ export function Routines() {
         ) : null}
 
         <section>
-          <SectionTitle>Routine insights</SectionTitle>
+          <SectionTitle>{t('routines.insightsSection')}</SectionTitle>
           <InsightTeaser
             to="/insights"
             title={
-              insights.morningPercent >= 70 ? 'Good consistency' : 'Your week so far'
+              insights.morningPercent >= 70
+                ? t('routines.insightsGood')
+                : t('routines.insightsWeek')
             }
             body={
               insights.total === 0
-                ? 'Once you have a few days recorded, patterns will show up here.'
-                : `You have completed ${insights.morningPercent}% of your morning routines this week, across ${insights.days.length} ${pluralize(insights.days.length, 'day')}.`
+                ? t('routines.insightsEmpty')
+                : t('routines.insightsBody', { percent: insights.morningPercent })
             }
           />
         </section>

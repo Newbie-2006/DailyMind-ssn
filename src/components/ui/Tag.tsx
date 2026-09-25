@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 export function Tag({
   children,
@@ -10,6 +11,7 @@ export function Tag({
   onRemove?: () => void;
   tone?: 'sage' | 'beige';
 }) {
+  const { t } = useTranslation();
   const tones = {
     sage: 'bg-sage-wash text-forest-deep',
     beige: 'bg-beige text-ink-soft',
@@ -26,7 +28,7 @@ export function Tag({
         <button
           type="button"
           onClick={onRemove}
-          aria-label={`Remove ${String(children)}`}
+          aria-label={`${t('common.remove')} ${String(children)}`}
           className="tap inline-flex size-5 items-center justify-center rounded-full text-forest/70 hover:bg-sage-soft hover:text-forest-deep"
         >
           <X size={13} strokeWidth={2.2} aria-hidden="true" />

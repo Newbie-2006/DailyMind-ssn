@@ -12,11 +12,13 @@ import { Button, IconButton } from '../components/ui/Button';
 import { ChoiceChip, FieldGroup, TextAreaField, TextField } from '../components/ui/Field';
 import { Tag } from '../components/ui/Tag';
 import { useToast } from '../components/ui/toastContext';
+import { useTranslation } from '../i18n/useTranslation';
+import type { TranslationKey } from '../i18n/translate';
 
-const categories: { id: MemoryCategory; label: string }[] = [
-  { id: 'photo', label: 'Photo' },
-  { id: 'people', label: 'People' },
-  { id: 'event', label: 'Event' },
+const categories: { id: MemoryCategory; labelKey: TranslationKey }[] = [
+  { id: 'photo', labelKey: 'memories.category.photo' },
+  { id: 'people', labelKey: 'memories.category.people' },
+  { id: 'event', labelKey: 'memories.category.event' },
 ];
 
 /** Serves both "Add Memory" and editing an existing one - the form is the same. */
@@ -25,6 +27,7 @@ export function AddMemory() {
   const navigate = useNavigate();
   const { notify } = useToast();
   const { memories, actions } = useAppData();
+  const { t } = useTranslation();
 
   const existing = memoryId ? memories.find((memory) => memory.id === memoryId) : undefined;
   const isEditing = Boolean(existing);
@@ -63,7 +66,7 @@ export function AddMemory() {
     try {
       setImage(await fileToStorableImage(file));
     } catch {
-      setImageError('That photo could not be opened. Try a different one.');
+      setImageError(t('memoryForm.photoError'));
     } finally {
       setBusy(false);
     }
@@ -85,11 +88,11 @@ export function AddMemory() {
 
     if (existing) {
       actions.updateMemory(existing.id, draft);
-      notify('Memory updated');
+      notify(t('memoryForm.updatedToast'));
       navigate(`/memories/${existing.id}`, { replace: true });
     } else {
       const created = actions.addMemory(draft);
-      notify('Memory saved');
+      notify(t('memoryForm.savedToast'));
       navigate(`/memories/${created.id}`, { replace: true });
     }
   };
@@ -111,7 +114,7 @@ export function AddMemory() {
   return (
     <div className="pb-10">
       <PageHeader
-        title={isEditing ? 'Edit memory' : 'Add memory'}
+        title={isEditing ? t('memoryForm.editTitle') : t('memoryForm.addTitle')}
         onBack
         fallbackTo="/memories"
         actions={
@@ -121,7 +124,7 @@ export function AddMemory() {
             disabled={busy}
             className="tap mr-1 inline-flex min-h-10 items-center rounded-full bg-forest px-4 text-[0.875rem] font-medium text-canvas active:scale-[0.98] disabled:opacity-45"
           >
-            Save
+            {t('common.save')}
           </button>
         }
       />
@@ -149,10 +152,10 @@ export function AddMemory() {
                   className="tap inline-flex min-h-10 items-center gap-1.5 rounded-full bg-surface/95 px-3.5 text-[0.8125rem] font-medium text-ink shadow-soft"
                 >
                   <RefreshCw size={14} strokeWidth={1.9} aria-hidden="true" />
-                  Change
+                  {t('common.change')}
                 </button>
                 <IconButton
-                  label="Remove photo"
+                  label={t('memoryForm.removePhoto')}
                   onClick={() => setImage(undefined)}
                   className="bg-surface/95 shadow-soft"
                 >
@@ -171,9 +174,9 @@ export function AddMemory() {
                 <Camera size={22} strokeWidth={1.6} aria-hidden="true" />
               </span>
               <span className="text-[0.9375rem] font-medium text-ink">
-                {busy ? 'Preparing photo...' : 'Add a photo'}
+                {busy ? t('memoryForm.preparingPhoto') : t('memoryForm.addPhoto')}
               </span>
-              <span className="text-[0.8125rem] text-ink-faint">Optional</span>
+              <span className="text-[0.8125rem] text-ink-faint">{t('common.optional')}</span>
             </button>
           )}
 
@@ -185,21 +188,21 @@ export function AddMemory() {
         </div>
 
         <TextField
-          label="Title"
+          label={t('memoryForm.title')}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           onBlur={() => setTouched(true)}
-          placeholder="Evening at the lake"
+          placeholder={t('memoryForm.titlePlaceholder')}
           aria-invalid={touched && !titleValid}
         />
         {touched && !titleValid ? (
           <p role="alert" className="-mt-4 text-[0.8125rem] text-clay">
-            A title helps you find this again later.
+            {t('memoryForm.titleRequired')}
           </p>
         ) : null}
 
         <TextField
-          label="Date"
+          label={t('memoryForm.date')}
           type="date"
           value={date}
           max={today()}
@@ -207,14 +210,14 @@ export function AddMemory() {
         />
 
         <TextAreaField
-          label="Description"
+          label={t('memoryForm.description')}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          placeholder="What happened, and how it felt."
+          placeholder={t('memoryForm.descriptionPlaceholder')}
           rows={5}
         />
 
-        <FieldGroup label="Kind of memory">
+        <FieldGroup label={t('memoryForm.kind')}>
           <div className="flex flex-wrap gap-2">
             {categories.map((option) => (
               <ChoiceChip
@@ -222,13 +225,13 @@ export function AddMemory() {
                 selected={category === option.id}
                 onClick={() => setCategory(option.id)}
               >
-                {option.label}
+                {t(option.labelKey)}
               </ChoiceChip>
             ))}
           </div>
         </FieldGroup>
 
-        <FieldGroup label="People">
+        <FieldGroup label={t('memoryForm.people')}>
           {people.length > 0 ? (
             <div className="mb-3 flex flex-wrap gap-2">
               {people.map((person) => (
@@ -253,11 +256,11 @@ export function AddMemory() {
                   addPerson(personDraft);
                 }
               }}
-              placeholder="Who was there?"
-              aria-label="Add a person"
+              placeholder={t('memoryForm.peoplePlaceholder')}
+              aria-label={t('memoryForm.addPerson')}
               className="min-h-12 w-full rounded-2xl border border-line-soft bg-surface-sunk px-4 text-[0.9375rem] placeholder:text-ink-faint focus:border-sage focus:bg-surface focus:outline-none"
             />
-            <IconButton label="Add person" onClick={() => addPerson(personDraft)}>
+            <IconButton label={t('memoryForm.addPersonAction')} onClick={() => addPerson(personDraft)}>
               <Plus size={19} strokeWidth={2} aria-hidden="true" />
             </IconButton>
           </div>
@@ -278,7 +281,7 @@ export function AddMemory() {
           ) : null}
         </FieldGroup>
 
-        <FieldGroup label="Tags">
+        <FieldGroup label={t('memoryForm.tags')}>
           {tags.length > 0 ? (
             <div className="mb-3 flex flex-wrap gap-2">
               {tags.map((tag) => (
@@ -299,11 +302,11 @@ export function AddMemory() {
                   addTag(tagDraft);
                 }
               }}
-              placeholder="Add a tag"
-              aria-label="Add a tag"
+              placeholder={t('memoryForm.addTag')}
+              aria-label={t('memoryForm.addTag')}
               className="min-h-12 w-full rounded-2xl border border-line-soft bg-surface-sunk px-4 text-[0.9375rem] placeholder:text-ink-faint focus:border-sage focus:bg-surface focus:outline-none"
             />
-            <IconButton label="Add tag" onClick={() => addTag(tagDraft)}>
+            <IconButton label={t('memoryForm.addTagAction')} onClick={() => addTag(tagDraft)}>
               <Plus size={19} strokeWidth={2} aria-hidden="true" />
             </IconButton>
           </div>
@@ -325,7 +328,7 @@ export function AddMemory() {
         </FieldGroup>
 
         <Button size="lg" onClick={save} disabled={busy}>
-          {isEditing ? 'Save changes' : 'Save memory'}
+          {isEditing ? t('common.saveChanges') : t('memoryForm.saveMemory')}
         </Button>
       </div>
     </div>

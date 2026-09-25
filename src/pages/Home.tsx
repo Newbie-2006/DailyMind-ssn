@@ -2,7 +2,7 @@ import { ArrowRight, ChevronRight, Sparkle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMemo } from 'react';
 import { useAppData, useDay } from '../hooks/useAppData';
-import { formatDateWithWeekday, greetingFor, today } from '../utils/date';
+import { formatDateWithWeekday, timeOfDay, today } from '../utils/date';
 import { firstName, initials } from '../utils/format';
 import { mostRecent } from '../services/memoryService';
 import { ProgressCard } from '../components/ProgressCard';
@@ -11,17 +11,21 @@ import { MemoryFeatureCard } from '../components/MemoryCard';
 import { Card, CardLink, SectionTitle } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ButtonLink } from '../components/ui/Button';
+import { useTranslation } from '../i18n/useTranslation';
+import type { TranslateFn } from '../i18n/translate';
 
 /** A quiet line that changes with the time of day. Never instructional. */
-function contextualNote(hour: number, remaining: number): string {
-  if (remaining === 0) return 'Everything on today is done. Rest easy.';
-  if (hour < 12) return 'A calmer day starts with small steps.';
-  if (hour < 17) return 'There is no hurry. The day is still yours.';
-  return 'A gentle end to the day is enough.';
+function contextualNote(now: Date, remaining: number, t: TranslateFn): string {
+  if (remaining === 0) return t('home.note.allDone');
+  const part = timeOfDay(now);
+  if (part === 'morning') return t('home.note.morning');
+  if (part === 'afternoon') return t('home.note.afternoon');
+  return t('home.note.evening');
 }
 
 export function Home() {
   const { memories, settings } = useAppData();
+  const { t } = useTranslation();
   const date = today();
   const { occurrences, progress, toggleRoutine } = useDay(date);
 
@@ -34,7 +38,9 @@ export function Home() {
       <header className="safe-top px-5 pt-5 pb-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-[0.9375rem] text-ink-soft">{greetingFor(now)},</p>
+            <p className="text-[0.9375rem] text-ink-soft">
+              {t(`home.greeting.${timeOfDay(now)}`)},
+            </p>
             <h1 className="font-display text-[1.875rem] leading-tight tracking-[-0.015em] text-ink">
               {firstName(settings.name)}
             </h1>
@@ -43,7 +49,7 @@ export function Home() {
 
           <Link
             to="/profile"
-            aria-label="Open your profile"
+            aria-label={t('home.openProfile')}
             className="tap size-12 shrink-0 overflow-hidden rounded-full bg-sage-wash"
           >
             {settings.avatar ? (
@@ -65,7 +71,7 @@ export function Home() {
       <div className="space-y-6 px-5">
         <Card surface="sage" className="flex items-center gap-4 px-5 py-4">
           <p className="flex-1 font-display text-[1.0625rem] leading-snug text-forest-deep">
-            {contextualNote(now.getHours(), remaining.length)}
+            {contextualNote(now, remaining.length, t)}
           </p>
           <Sparkle
             size={20}
@@ -84,20 +90,20 @@ export function Home() {
                 to="/routines"
                 className="tap text-[0.8125rem] font-medium text-forest underline-offset-4 hover:underline"
               >
-                See all
+                {t('common.seeAll')}
               </Link>
             }
           >
-            Today&rsquo;s routine
+            {t('home.todaysRoutine')}
           </SectionTitle>
 
           {occurrences.length === 0 ? (
             <Card className="px-2 py-2">
               <EmptyState
                 icon={<Sparkle size={24} strokeWidth={1.5} />}
-                title="Nothing scheduled"
-                body="Add the things you would like to keep doing each day."
-                action={<ButtonLink to="/routines/new">Add a routine</ButtonLink>}
+                title={t('home.emptyRoutines.title')}
+                body={t('home.emptyRoutines.body')}
+                action={<ButtonLink to="/routines/new">{t('routines.addRoutine')}</ButtonLink>}
               />
             </Card>
           ) : (
@@ -125,9 +131,11 @@ export function Home() {
             <Sparkle size={19} strokeWidth={1.6} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[0.9375rem] font-medium text-ink">Ask DailyMind</span>
+            <span className="block text-[0.9375rem] font-medium text-ink">
+              {t('home.askTitle')}
+            </span>
             <span className="mt-0.5 block text-[0.8125rem] leading-snug text-ink-soft">
-              What do I need to do today?
+              {t('home.askHint')}
             </span>
           </span>
           <ArrowRight size={18} strokeWidth={1.8} aria-hidden="true" className="shrink-0 text-forest" />
@@ -139,15 +147,15 @@ export function Home() {
               action={
                 <Link
                   to="/memories"
-                  aria-label="See all memories"
+                  aria-label={t('assistant.reply.seeAllMemories')}
                   className="tap inline-flex items-center gap-0.5 text-[0.8125rem] font-medium text-forest"
                 >
-                  All
+                  {t('common.all')}
                   <ChevronRight size={14} strokeWidth={2} aria-hidden="true" />
                 </Link>
               }
             >
-              Recent memory
+              {t('home.recentMemory')}
             </SectionTitle>
             <MemoryFeatureCard memory={recent} />
           </section>

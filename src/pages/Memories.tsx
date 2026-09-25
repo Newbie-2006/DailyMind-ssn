@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, Images, LayoutList, Plus, Search, X } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMemories } from '../hooks/useAppData';
-import { filterMemories, memoryFilters, type MemoryFilter } from '../services/memoryService';
+import { filterMemories, memoryFilterOptions, type MemoryFilter } from '../services/memoryService';
 import { MemoryCard } from '../components/MemoryCard';
 import { MemoryGrid } from '../components/MemoryGrid';
 import { LargeHeader } from '../components/PageHeader';
@@ -10,7 +10,7 @@ import { FilterChips } from '../components/ui/Tag';
 import { IconButton } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Button } from '../components/ui/Button';
-import { pluralize } from '../utils/format';
+import { useTranslation } from '../i18n/useTranslation';
 
 /** How many memories the list shows before "View all" opens the gallery. */
 const PREVIEW_COUNT = 6;
@@ -20,6 +20,7 @@ type View = 'list' | 'gallery';
 export function Memories() {
   const { memories } = useMemories();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [filter, setFilter] = useState<MemoryFilter>('all');
   const [query, setQuery] = useState('');
@@ -47,11 +48,11 @@ export function Memories() {
   return (
     <div className="pb-8">
       <LargeHeader
-        title="Memories"
+        title={t('memories.title')}
         actions={
           <>
             <IconButton
-              label={searching ? 'Close search' : 'Search memories'}
+              label={searching ? t('memories.closeSearch') : t('memories.search')}
               onClick={() => (searching ? closeSearch() : setSearching(true))}
             >
               {searching ? (
@@ -61,7 +62,7 @@ export function Memories() {
               )}
             </IconButton>
             <IconButton
-              label="Add a memory"
+              label={t('memories.addMemory')}
               tone="filled"
               onClick={() => navigate('/memories/new')}
             >
@@ -75,13 +76,13 @@ export function Memories() {
         {searching ? (
           <div className="animate-fade">
             <label htmlFor="memory-search" className="sr-only">
-              Search memories
+              {t('memories.search')}
             </label>
             <input
               id="memory-search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by title, person or tag"
+              placeholder={t('memories.searchPlaceholder')}
               autoFocus
               type="search"
               className="min-h-12 w-full rounded-full border border-line bg-surface px-4 text-[0.9375rem] text-ink placeholder:text-ink-faint focus:border-sage focus:outline-none"
@@ -90,8 +91,8 @@ export function Memories() {
         ) : null}
 
         <FilterChips<MemoryFilter>
-          label="Filter memories"
-          options={memoryFilters}
+          label={t('memories.filterLabel')}
+          options={memoryFilterOptions(t)}
           value={filter}
           onChange={setFilter}
         />
@@ -99,11 +100,15 @@ export function Memories() {
         {visible.length === 0 ? (
           <EmptyState
             icon={<Images size={24} strokeWidth={1.5} />}
-            title={query || filter !== 'all' ? 'Nothing matches yet' : 'No memories yet'}
+            title={
+              query || filter !== 'all'
+                ? t('memories.empty.noMatchTitle')
+                : t('memories.empty.noneTitle')
+            }
             body={
               query || filter !== 'all'
-                ? 'Try a different word, or clear the filter to see everything you have saved.'
-                : 'Start capturing the moments you want to remember.'
+                ? t('memories.empty.noMatchBody')
+                : t('memories.empty.noneBody')
             }
             action={
               query || filter !== 'all' ? (
@@ -114,12 +119,12 @@ export function Memories() {
                     setFilter('all');
                   }}
                 >
-                  Clear filters
+                  {t('memories.clearFilters')}
                 </Button>
               ) : (
                 <Button onClick={() => navigate('/memories/new')}>
                   <Plus size={17} strokeWidth={2} aria-hidden="true" />
-                  Add memory
+                  {t('memories.addShort')}
                 </Button>
               )
             }
@@ -140,7 +145,7 @@ export function Memories() {
                 onClick={() => setView('gallery')}
                 className="tap flex min-h-12 w-full items-center justify-center gap-1.5 rounded-full bg-surface text-[0.875rem] font-medium text-forest shadow-soft transition-transform duration-150 active:scale-[0.99]"
               >
-                View all {visible.length} {pluralize(visible.length, 'memory', 'memories')}
+                {t('memories.viewAll', { count: visible.length })}
                 <ChevronDown size={16} strokeWidth={2} aria-hidden="true" />
               </button>
             </div>
@@ -149,7 +154,7 @@ export function Memories() {
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-3">
               <p className="text-[0.8125rem] text-ink-faint">
-                {visible.length} {pluralize(visible.length, 'memory', 'memories')}
+                {t('memories.count', { count: visible.length })}
               </p>
               <button
                 type="button"
@@ -157,7 +162,7 @@ export function Memories() {
                 className="tap inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-forest active:bg-surface-sunk"
               >
                 <LayoutList size={15} strokeWidth={1.9} aria-hidden="true" />
-                Back to list
+                {t('memories.backToList')}
               </button>
             </div>
 

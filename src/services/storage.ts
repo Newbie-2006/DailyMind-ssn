@@ -14,7 +14,9 @@ export const StorageKeys = {
   routines: 'routines',
   completions: 'completions',
   reminders: 'reminders',
+  location: 'location',
   settings: 'settings',
+  language: 'language',
   caregivers: 'caregivers',
   seeded: 'seeded',
 } as const;

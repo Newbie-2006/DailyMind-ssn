@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { AssistantReply } from '../services/assistantService';
 import { RoutineIconGlyph } from './RoutineIconGlyph';
 import { MemoryImage } from './MemoryImage';
+import { useTranslation } from '../i18n/useTranslation';
 
 export interface ChatTurn {
   id: string;
@@ -98,9 +99,11 @@ function ItemRow({ item }: { item: NonNullable<AssistantReply['items']>[number] 
 
 /** Three quiet dots while the assistant is working out its answer. */
 export function TypingBubble() {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center gap-1.5 rounded-[1.125rem] rounded-bl-md bg-surface px-4 py-4 shadow-soft">
-      <span className="sr-only">DailyMind is replying</span>
+      <span className="sr-only">{t('assistant.replying')}</span>
       {[0, 1, 2].map((index) => (
         <span
           key={index}

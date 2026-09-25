@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { RoutineOccurrence } from '../types';
 import { formatTime } from '../utils/date';
 import { RoutineIconGlyph } from './RoutineIconGlyph';
+import { useTranslation } from '../i18n/useTranslation';
 
 export interface RoutineItemProps {
   occurrence: RoutineOccurrence;
@@ -18,6 +19,7 @@ export interface RoutineItemProps {
  */
 export function RoutineItem({ occurrence, onToggle, linkTo }: RoutineItemProps) {
   const { routine, completed } = occurrence;
+  const { t } = useTranslation();
 
   return (
     <div
@@ -33,7 +35,9 @@ export function RoutineItem({ occurrence, onToggle, linkTo }: RoutineItemProps) 
         className="tap inline-flex size-11 shrink-0 items-center justify-center rounded-full active:scale-95"
       >
         <span className="sr-only">
-          {completed ? `Mark ${routine.name} as not done` : `Mark ${routine.name} as done`}
+          {completed
+            ? t('routineItem.markNotDone', { name: routine.name })
+            : t('routineItem.markDone', { name: routine.name })}
         </span>
         <span
           className={`flex size-[26px] items-center justify-center rounded-full border transition-colors duration-200 ${

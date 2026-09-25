@@ -4,21 +4,23 @@ import type { InsightRange } from '../types';
 import { useAppData, useInsights } from '../hooks/useAppData';
 import { currentStreak } from '../services/insightsService';
 import { formatDate, today } from '../utils/date';
-import { pluralize } from '../utils/format';
+import { useTranslation } from '../i18n/useTranslation';
+import type { TranslationKey } from '../i18n/translate';
 import { PageHeader } from '../components/PageHeader';
 import { CompletionChart, InsightCard } from '../components/InsightCard';
 import { Card, SectionTitle } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 
-const ranges: { id: InsightRange; label: string }[] = [
-  { id: 'week', label: 'This week' },
-  { id: 'month', label: 'Four weeks' },
+const ranges: { id: InsightRange; labelKey: TranslationKey }[] = [
+  { id: 'week', labelKey: 'insights.thisWeek' },
+  { id: 'month', labelKey: 'insights.fourWeeks' },
 ];
 
 export function Insights() {
   const [range, setRange] = useState<InsightRange>('week');
   const insights = useInsights(range);
   const { routines, completions } = useAppData();
+  const { t } = useTranslation();
   const streak = currentStreak(routines, completions);
 
   // Four weeks of bars would be unreadable on a phone, so the chart always
@@ -32,13 +34,13 @@ export function Insights() {
   return (
     <div className="pb-10">
       <PageHeader
-        title="Insights"
+        title={t('insights.title')}
         onBack
         fallbackTo="/routines"
         actions={
           <div className="relative mr-1">
             <label htmlFor="insight-range" className="sr-only">
-              Choose a period
+              {t('insights.choosePeriod')}
             </label>
             <select
               id="insight-range"
@@ -48,7 +50,7 @@ export function Insights() {
             >
               {ranges.map((option) => (
                 <option key={option.id} value={option.id}>
-                  {option.label}
+                  {t(option.labelKey)}
                 </option>
               ))}
             </select>
@@ -65,21 +67,24 @@ export function Insights() {
       {insights.total === 0 ? (
         <EmptyState
           icon={<Info size={24} strokeWidth={1.5} />}
-          title="Nothing to show yet"
-          body="Once you have recorded a few days of routines, DailyMind will describe what it notices."
+          title={t('insights.empty.title')}
+          body={t('insights.empty.body')}
         />
       ) : (
         <div className="space-y-6 px-5 pt-2">
           <Card className="px-5 py-4.5">
             <div className="flex items-baseline justify-between gap-3">
               <div>
-                <p className="text-[0.8125rem] text-ink-faint">Completed</p>
+                <p className="text-[0.8125rem] text-ink-faint">{t('insights.completed')}</p>
                 <p className="mt-0.5 font-display text-[1.75rem] leading-none text-ink">
                   {insights.percent}%
                 </p>
               </div>
               <p className="text-right text-[0.8125rem] leading-relaxed text-ink-soft">
-                {insights.completed} of {insights.total} routines
+                {t('insights.routinesCount', {
+                  completed: insights.completed,
+                  total: insights.total,
+                })}
                 <br />
                 {formatDate(insights.range.start)} - {formatDate(lastCounted)}
               </p>
@@ -91,7 +96,7 @@ export function Insights() {
           ))}
 
           <section>
-            <SectionTitle>Routine completion</SectionTitle>
+            <SectionTitle>{t('insights.chartTitle')}</SectionTitle>
             <Card className="px-4 py-5">
               <CompletionChart days={chartDays} />
             </Card>
@@ -99,29 +104,26 @@ export function Insights() {
 
           <div className="grid grid-cols-2 gap-3">
             <Card className="px-4 py-4">
-              <p className="text-[0.8125rem] text-ink-faint">Mornings</p>
+              <p className="text-[0.8125rem] text-ink-faint">{t('insights.mornings')}</p>
               <p className="mt-1 font-display text-[1.375rem] leading-none text-ink">
                 {insights.morningPercent}%
               </p>
               <p className="mt-1.5 text-[0.8125rem] leading-snug text-ink-soft">
-                of morning routines completed
+                {t('insights.morningsCaption')}
               </p>
             </Card>
             <Card className="px-4 py-4">
-              <p className="text-[0.8125rem] text-ink-faint">Full days</p>
+              <p className="text-[0.8125rem] text-ink-faint">{t('insights.fullDays')}</p>
               <p className="mt-1 font-display text-[1.375rem] leading-none text-ink">{streak}</p>
               <p className="mt-1.5 text-[0.8125rem] leading-snug text-ink-soft">
-                {pluralize(streak, 'day')} in a row with everything done
+                {t('insights.fullDaysCaption', { count: streak })}
               </p>
             </Card>
           </div>
 
           <p className="flex items-start gap-2 px-1 text-[0.8125rem] leading-relaxed text-ink-faint">
             <Info size={14} strokeWidth={1.7} aria-hidden="true" className="mt-0.5 shrink-0" />
-            <span>
-              These are plain observations from what you have recorded. They describe your routine,
-              not your health.
-            </span>
+            <span>{t('insights.disclaimer')}</span>
           </p>
         </div>
       )}

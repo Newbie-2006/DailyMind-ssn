@@ -8,7 +8,8 @@ import type {
   WeeklyInsights,
 } from '../types';
 import { addDays, today, weekOf } from '../utils/date';
-import { percentOf, pluralize } from '../utils/format';
+import { percentOf } from '../utils/format';
+import type { TranslateFn } from '../i18n/translate';
 import { isMorning, occurrencesFor, progressFor } from './routineService';
 
 /**
@@ -65,6 +66,7 @@ export function datesForRange(range: InsightRange, reference: ISODate = today())
 export function buildInsights(
   routines: Routine[],
   completions: CompletionLog,
+  t: TranslateFn,
   range: InsightRange = 'week',
   reference: ISODate = today(),
 ): WeeklyInsights {
@@ -100,7 +102,7 @@ export function buildInsights(
     }
   }
 
-  const rangeLabel = range === 'week' ? 'this week' : 'over the last four weeks';
+  const rangeLabel = range === 'week' ? t('insights.rangeWeek') : t('insights.rangeMonth');
 
   return {
     range: { start: dates[0], end: dates[dates.length - 1] },
@@ -112,7 +114,7 @@ export function buildInsights(
     morningPercent: percentOf(morning.completed, morning.total),
     bestDay,
     mostMissed,
-    observations: buildObservations({
+    observations: buildObservations(t, {
       percent,
       previousPercent,
       morningPercent: percentOf(morning.completed, morning.total),
@@ -134,7 +136,7 @@ interface ObservationInput {
   hasPrevious: boolean;
 }
 
-function buildObservations(input: ObservationInput): Observation[] {
+function buildObservations(t: TranslateFn, input: ObservationInput): Observation[] {
   const observations: Observation[] = [];
   const { percent, previousPercent, morningPercent, mostMissed, rangeLabel, hasPrevious } = input;
 
@@ -142,15 +144,15 @@ function buildObservations(input: ObservationInput): Observation[] {
     observations.push({
       id: 'morning-steady',
       tone: 'positive',
-      title: 'Good consistency',
-      body: `You completed ${morningPercent}% of your morning routines ${rangeLabel}.`,
+      title: t('insights.obs.morningGood'),
+      body: t('insights.obs.morningGoodBody', { percent: morningPercent, range: rangeLabel }),
     });
   } else if (morningPercent > 0) {
     observations.push({
       id: 'morning-mixed',
       tone: 'neutral',
-      title: 'Mornings were mixed',
-      body: `You completed ${morningPercent}% of your morning routines ${rangeLabel}.`,
+      title: t('insights.obs.morningMixed'),
+      body: t('insights.obs.morningMixedBody', { percent: morningPercent, range: rangeLabel }),
     });
   }
 
@@ -160,22 +162,22 @@ function buildObservations(input: ObservationInput): Observation[] {
       observations.push({
         id: 'trend-up',
         tone: 'positive',
-        title: 'More completed than last time',
-        body: `Overall completion was ${percent}%, compared with ${previousPercent}% in the period before.`,
+        title: t('insights.obs.trendUp'),
+        body: t('insights.obs.trendUpBody', { percent, previous: previousPercent }),
       });
     } else if (delta <= -8) {
       observations.push({
         id: 'trend-down',
         tone: 'attention',
-        title: 'A change from your usual pattern',
-        body: `Overall completion was ${percent}%, compared with ${previousPercent}% in the period before. This is a description of your log, not a judgement.`,
+        title: t('insights.obs.trendDown'),
+        body: t('insights.obs.trendDownBody', { percent, previous: previousPercent }),
       });
     } else {
       observations.push({
         id: 'trend-steady',
         tone: 'neutral',
-        title: 'A steady stretch',
-        body: `Overall completion was ${percent}%, close to the ${previousPercent}% in the period before.`,
+        title: t('insights.obs.trendSteady'),
+        body: t('insights.obs.trendSteadyBody', { percent, previous: previousPercent }),
       });
     }
   }
@@ -184,11 +186,11 @@ function buildObservations(input: ObservationInput): Observation[] {
     observations.push({
       id: 'most-missed',
       tone: 'attention',
-      title: `${mostMissed.routine.name} was missed most often`,
-      body: `It was not marked complete on ${mostMissed.missed} ${pluralize(
-        mostMissed.missed,
-        'day',
-      )} ${rangeLabel}. You may want to move it to a different time.`,
+      title: t('insights.obs.mostMissed', { name: mostMissed.routine.name }),
+      body: t('insights.obs.mostMissedBody', {
+        count: mostMissed.missed,
+        range: rangeLabel,
+      }),
     });
   }
 
