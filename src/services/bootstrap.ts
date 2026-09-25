@@ -1,7 +1,16 @@
-import type { Caregiver, CompletionLog, Memory, Reminder, Routine, Settings } from '../types';
+import type {
+  Caregiver,
+  CompletionLog,
+  LocationState,
+  Memory,
+  Reminder,
+  Routine,
+  Settings,
+} from '../types';
 import {
   buildSeedCompletions,
   seedCaregivers,
+  seedLocation,
   seedMemories,
   seedRoutines,
   seedSettings,
@@ -15,6 +24,7 @@ export interface InitialState {
   reminders: Reminder[];
   settings: Settings;
   caregivers: Caregiver[];
+  location: LocationState;
 }
 
 /**
@@ -33,6 +43,7 @@ function load(): InitialState {
       reminders: readKey<Reminder[]>(StorageKeys.reminders, []),
       settings: readKey<Settings>(StorageKeys.settings, seedSettings),
       caregivers: readKey<Caregiver[]>(StorageKeys.caregivers, seedCaregivers),
+      location: readKey<LocationState>(StorageKeys.location, seedLocation),
     };
   }
 
@@ -43,6 +54,7 @@ function load(): InitialState {
     reminders: [],
     settings: seedSettings,
     caregivers: seedCaregivers,
+    location: seedLocation,
   };
 
   writeKey(StorageKeys.memories, initial.memories);
@@ -51,6 +63,7 @@ function load(): InitialState {
   writeKey(StorageKeys.reminders, initial.reminders);
   writeKey(StorageKeys.settings, initial.settings);
   writeKey(StorageKeys.caregivers, initial.caregivers);
+  writeKey(StorageKeys.location, initial.location);
   writeKey(StorageKeys.seeded, true);
 
   return initial;

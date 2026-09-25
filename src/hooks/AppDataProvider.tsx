@@ -4,6 +4,9 @@ import type {
   CaregiverPermissions,
   CompletionLog,
   ISODate,
+  LocationFix,
+  LocationFrequency,
+  LocationState,
   Memory,
   MemoryDraft,
   Reminder,
@@ -15,6 +18,7 @@ import type {
 import {
   buildSeedCompletions,
   seedCaregivers,
+  seedLocation,
   seedMemories,
   seedRoutines,
   seedSettings,
@@ -37,6 +41,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [reminders, setReminders] = useState<Reminder[]>(() => initialState().reminders);
   const [settings, setSettings] = useState<Settings>(() => initialState().settings);
   const [caregivers, setCaregivers] = useState<Caregiver[]>(() => initialState().caregivers);
+  const [location, setLocation] = useState<LocationState>(() => initialState().location);
 
   // Each slice is written back whenever it changes. The first pass rewrites
   // what was just read, which costs nothing and keeps the rule simple.
@@ -63,6 +68,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     writeKey(StorageKeys.caregivers, caregivers);
   }, [caregivers]);
+
+  useEffect(() => {
+    writeKey(StorageKeys.location, location);
+  }, [location]);
 
   const addMemory = useCallback((draft: MemoryDraft): Memory => {
     const memory: Memory = { ...draft, id: createId('mem'), createdAt: new Date().toISOString() };
@@ -148,6 +157,29 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const setLocationSharing = useCallback((enabled: boolean) => {
+    setLocation((current) => ({
+      ...current,
+      sharingEnabled: enabled,
+      // Turning sharing off drops the stored position rather than leaving a
+      // stale one behind for the next time it is switched on.
+      lastFix: enabled ? current.lastFix : null,
+      lastError: undefined,
+    }));
+  }, []);
+
+  const setLocationFrequency = useCallback((frequency: LocationFrequency) => {
+    setLocation((current) => ({ ...current, frequency }));
+  }, []);
+
+  const recordLocationFix = useCallback((fix: LocationFix) => {
+    setLocation((current) => ({ ...current, lastFix: fix, lastError: undefined }));
+  }, []);
+
+  const setLocationError = useCallback((code: LocationState['lastError']) => {
+    setLocation((current) => ({ ...current, lastError: code }));
+  }, []);
+
   const removeCaregiver = useCallback((id: string) => {
     setCaregivers((current) => current.filter((caregiver) => caregiver.id !== id));
   }, []);
@@ -162,6 +194,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setReminders([]);
     setSettings({ ...seedSettings, onboarded: true });
     setCaregivers(seedCaregivers);
+    setLocation(seedLocation);
     writeKey(StorageKeys.seeded, true);
   }, []);
 
@@ -173,6 +206,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       reminders,
       settings,
       caregivers,
+      location,
       ready: true,
       actions: {
         addMemory,
@@ -186,6 +220,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         toggleRoutine,
         updateSettings,
         completeOnboarding,
+        setLocationSharing,
+        setLocationFrequency,
+        recordLocationFix,
+        setLocationError,
         addCaregiver,
         updateCaregiver,
         setCaregiverPermission,
@@ -200,6 +238,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       reminders,
       settings,
       caregivers,
+      location,
       addMemory,
       updateMemory,
       deleteMemory,
@@ -211,6 +250,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       toggleRoutine,
       updateSettings,
       completeOnboarding,
+      setLocationSharing,
+      setLocationFrequency,
+      recordLocationFix,
+      setLocationError,
       addCaregiver,
       updateCaregiver,
       setCaregiverPermission,

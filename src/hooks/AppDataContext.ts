@@ -4,6 +4,9 @@ import type {
   CaregiverPermissions,
   CompletionLog,
   ISODate,
+  LocationFix,
+  LocationFrequency,
+  LocationState,
   Memory,
   MemoryDraft,
   Reminder,
@@ -27,6 +30,12 @@ export interface AppDataActions {
   toggleRoutine(routineId: string, date: ISODate): void;
 
   updateSettings(patch: Partial<Settings>): void;
+
+  setLocationSharing(enabled: boolean): void;
+  setLocationFrequency(frequency: LocationFrequency): void;
+  /** Stores a newly collected position. The transmission policy runs first. */
+  recordLocationFix(fix: LocationFix): void;
+  setLocationError(code: LocationState['lastError']): void;
   completeOnboarding(): void;
 
   addCaregiver(caregiver: Omit<Caregiver, 'id'>): void;
@@ -45,6 +54,7 @@ export interface AppDataValue {
   reminders: Reminder[];
   settings: Settings;
   caregivers: Caregiver[];
+  location: LocationState;
   /** False until the first read from storage has completed. */
   ready: boolean;
   actions: AppDataActions;
