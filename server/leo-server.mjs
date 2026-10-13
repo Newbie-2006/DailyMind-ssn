@@ -97,6 +97,7 @@ async function generateGaryReply(contents) {
 
 async function generateGroqReply(contents) {
   if (!groqApiKey) throw new Error('Groq fallback is not configured.');
+  const isGptOss = groqModel.startsWith('openai/gpt-oss-');
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -106,21 +107,27 @@ async function generateGroqReply(contents) {
     },
     body: JSON.stringify({
       model: groqModel,
-      messages: [
-        { role: 'system', content: instructions },
-        { role: 'user', content: contents },
-      ],
+      // Groq recommends placing instructions in the user message for GPT-OSS.
+      messages: isGptOss
+        ? [{ role: 'user', content: `${instructions}\n\n${contents}` }]
+        : [
+            { role: 'system', content: instructions },
+            { role: 'user', content: contents },
+          ],
       temperature: 0.35,
       max_completion_tokens: 320,
       response_format: { type: 'json_object' },
       // Groq's GPT-OSS models require an explicit reasoning format when
       // JSON mode is enabled. Other fallback models do not accept this field.
-      ...(groqModel.startsWith('openai/gpt-oss-') ? { reasoning_format: 'hidden' } : {}),
+      ...(isGptOss ? { reasoning_format: 'hidden' } : {}),
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`Groq fallback failed with status ${response.status}.`);
+    const errorBody = await response.json().catch(() => null);
+    const message =
+      typeof errorBody?.error?.message === 'string' ? errorBody.error.message.slice(0, 500) : 'No details returned.';
+    throw new Error(`Groq fallback failed with status ${response.status}: ${message}`);
   }
 
   const payload = await response.json();
