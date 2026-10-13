@@ -55,11 +55,17 @@ interface ApiResponse {
 
 export class GaryError extends Error {
   code: GaryErrorCode;
+  /** HTTP status from Anthropic, when there was a response. */
+  status?: number;
+  /** Anthropic's own explanation, e.g. "Your credit balance is too low". */
+  apiMessage?: string;
 
-  constructor(code: GaryErrorCode, detail?: string) {
-    super(detail ?? code);
+  constructor(code: GaryErrorCode, detail?: string, status?: number, apiMessage?: string) {
+    super(apiMessage ?? detail ?? code);
     this.name = 'GaryError';
     this.code = code;
+    this.status = status;
+    this.apiMessage = apiMessage;
   }
 }
 
@@ -77,11 +83,29 @@ function takeRateSlot(): void {
   recentRequests.push(now);
 }
 
-function errorForStatus(status: number): GaryError {
-  if (status === 401 || status === 403) return new GaryError('invalid_key', `HTTP ${status}`);
-  if (status === 429) return new GaryError('rate_limited', `HTTP ${status}`);
-  if (status === 529 || status >= 500) return new GaryError('overloaded', `HTTP ${status}`);
-  return new GaryError('unknown', `HTTP ${status}`);
+/** Anthropic errors arrive as `{ type: "error", error: { type, message } }`. */
+async function errorFromResponse(response: Response): Promise<GaryError> {
+  const status = response.status;
+  let apiMessage: string | undefined;
+  try {
+    const body = (await response.json()) as { error?: { message?: unknown } };
+    if (typeof body.error?.message === 'string') apiMessage = body.error.message;
+  } catch {
+    // No readable body: the status alone will have to do.
+  }
+
+  // Kept in the console so a family member helping can see the real reason.
+  console.warn(`Gary: Anthropic returned HTTP ${status}`, apiMessage ?? '');
+
+  const code: GaryErrorCode =
+    status === 401
+      ? 'invalid_key'
+      : status === 429
+        ? 'rate_limited'
+        : status === 529 || status >= 500
+          ? 'overloaded'
+          : 'unknown';
+  return new GaryError(code, `HTTP ${status}`, status, apiMessage);
 }
 
 interface CallOptions {
@@ -132,7 +156,7 @@ async function callApi(options: CallOptions): Promise<ApiResponse> {
     options.signal?.removeEventListener('abort', onOuterAbort);
   }
 
-  if (!response.ok) throw errorForStatus(response.status);
+  if (!response.ok) throw await errorFromResponse(response);
 
   try {
     return (await response.json()) as ApiResponse;
@@ -231,7 +255,8 @@ export async function testApiKey(apiKey: string, model: string): Promise<void> {
     model,
     system: 'Reply with OK.',
     messages: [{ role: 'user', content: 'Hi' }],
-    maxTokens: 16,
+    // Small, but with room for a model that thinks briefly before answering.
+    maxTokens: 256,
     withTools: false,
   });
 }

@@ -53,7 +53,9 @@ export function GarySettingsPage() {
       setCheck({ state: 'ok' });
     } catch (error) {
       const code = error instanceof GaryError ? error.code : 'unknown';
-      const message =
+      const status = error instanceof GaryError ? error.status : undefined;
+      const apiMessage = error instanceof GaryError ? error.apiMessage : undefined;
+      const summary =
         code === 'invalid_key'
           ? 'Anthropic did not accept this key.'
           : code === 'no_key'
@@ -62,7 +64,15 @@ export function GarySettingsPage() {
               ? 'Could not reach Anthropic. Check the internet connection.'
               : code === 'rate_limited' || code === 'overloaded'
                 ? 'The key looks fine, but the service is busy. Try again shortly.'
-                : 'That did not work. Check the key and the model name.';
+                : status === 404
+                  ? 'Anthropic does not recognise this model name for your key. Check it under Advanced.'
+                  : status === 403
+                    ? 'This key is not allowed to use this model.'
+                    : 'Anthropic turned the request down.';
+      // Anthropic's own words are the most useful thing to show, e.g. a low credit balance.
+      const message = apiMessage
+        ? `${summary} Anthropic says: “${apiMessage}”${status ? ` (HTTP ${status})` : ''}`
+        : `${summary}${status ? ` (HTTP ${status})` : ''}`;
       setCheck({ state: 'failed', message });
     }
   };
