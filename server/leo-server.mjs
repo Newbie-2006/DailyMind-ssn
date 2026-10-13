@@ -25,10 +25,19 @@ function sendJson(response, status, body) {
   response.end(JSON.stringify(body));
 }
 
+class InvalidGeminiResponseError extends Error {}
+
 function parseJson(text) {
-  const cleaned = text.trim().replace(/^```json\s*/i, '').replace(/\s*```$/, '');
-  const value = JSON.parse(cleaned);
-  if (!value || typeof value.text !== 'string') throw new Error('Invalid Gemini response shape.');
+  let value;
+  try {
+    const cleaned = text.trim().replace(/^```json\s*/i, '').replace(/\s*```$/, '');
+    value = JSON.parse(cleaned);
+  } catch {
+    throw new InvalidGeminiResponseError('Gemini returned malformed JSON.');
+  }
+  if (!value || typeof value.text !== 'string') {
+    throw new InvalidGeminiResponseError('Gemini returned an invalid response shape.');
+  }
   return {
     text: value.text,
     suggestions: Array.isArray(value.suggestions)
@@ -44,22 +53,41 @@ function isTransientGeminiError(error) {
   return status === 408 || status === 429 || (status >= 500 && status <= 599);
 }
 
+function isRetryableGaryError(error) {
+  return isTransientGeminiError(error) || error instanceof InvalidGeminiResponseError;
+}
+
 async function generateGaryReply(contents) {
-  // Gemini can briefly return 503 when capacity is constrained. Retry only
-  // transient failures, using a short exponential backoff with jitter.
+  // Gemini can briefly return 503 or malformed structured output. Retry only
+  // those transient failures, using a short exponential backoff with jitter.
   const maxAttempts = 3;
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     try {
-      return await ai.models.generateContent({
+      const result = await ai.models.generateContent({
         model,
         contents,
-        config: { systemInstruction: instructions, temperature: 0.35, maxOutputTokens: 320 },
+        config: {
+          systemInstruction: instructions,
+          temperature: 0.35,
+          maxOutputTokens: 320,
+          responseMimeType: 'application/json',
+          responseJsonSchema: {
+            type: 'object',
+            properties: {
+              text: { type: 'string' },
+              suggestions: { type: 'array', items: { type: 'string' }, maxItems: 3 },
+            },
+            required: ['text', 'suggestions'],
+            additionalProperties: false,
+          },
+        },
       });
+      return parseJson(result.text ?? '');
     } catch (error) {
-      if (!isTransientGeminiError(error) || attempt === maxAttempts - 1) throw error;
+      if (!isRetryableGaryError(error) || attempt === maxAttempts - 1) throw error;
 
       const delay = 500 * 2 ** attempt + Math.floor(Math.random() * 250);
-      console.warn(`Gary request temporarily unavailable; retrying in ${delay}ms.`);
+      console.warn(`Gary reply could not be completed; retrying in ${delay}ms.`);
       await sleep(delay);
     }
   }
@@ -88,10 +116,10 @@ http
           return sendJson(response, 400, { error: 'A message and context are required.' });
         }
 
-        const result = await generateGaryReply(
+        const reply = await generateGaryReply(
           `Patient context:\n${JSON.stringify(context)}\n\nPatient says: ${input}`,
         );
-        return sendJson(response, 200, parseJson(result.text ?? ''));
+        return sendJson(response, 200, reply);
       } catch (error) {
         console.error('Gary reply failed:', error);
         if (isTransientGeminiError(error)) {
