@@ -10,6 +10,8 @@ if (!apiKey) {
 
 const ai = new GoogleGenAI({ apiKey });
 const model = process.env.GEMINI_MODEL ?? 'gemini-3.8-flash';
+const groqApiKey = process.env.GROQ_API_KEY;
+const groqModel = process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile';
 
 const instructions = `You are Gary, a kind, concise voice assistant for an older adult using DailyMind.
 Use only the supplied personal context when discussing routines and memories. Speak in short, plain sentences that are easy to hear. Never diagnose illness, prescribe treatment, claim to contact emergency services, or present yourself as a doctor. If someone describes an immediate emergency, tell them to use the in-app SOS button or local emergency services and contact a caregiver. Do not invent appointments, medications, caregiver actions, or facts.
@@ -93,6 +95,37 @@ async function generateGaryReply(contents) {
   }
 }
 
+async function generateGroqReply(contents) {
+  if (!groqApiKey) throw new Error('Groq fallback is not configured.');
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${groqApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: groqModel,
+      messages: [
+        { role: 'system', content: instructions },
+        { role: 'user', content: contents },
+      ],
+      temperature: 0.35,
+      max_completion_tokens: 320,
+      response_format: { type: 'json_object' },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Groq fallback failed with status ${response.status}.`);
+  }
+
+  const payload = await response.json();
+  const text = payload?.choices?.[0]?.message?.content;
+  if (typeof text !== 'string') throw new InvalidGeminiResponseError('Groq returned an empty reply.');
+  return parseJson(text);
+}
+
 http
   .createServer(async (request, response) => {
     if (request.method === 'GET' && request.url === '/health') {
@@ -116,9 +149,16 @@ http
           return sendJson(response, 400, { error: 'A message and context are required.' });
         }
 
-        const reply = await generateGaryReply(
-          `Patient context:\n${JSON.stringify(context)}\n\nPatient says: ${input}`,
-        );
+        const contents = `Patient context:\n${JSON.stringify(context)}\n\nPatient says: ${input}`;
+        let reply;
+        try {
+          reply = await generateGaryReply(contents);
+        } catch (geminiError) {
+          if (!groqApiKey || !isRetryableGaryError(geminiError)) throw geminiError;
+
+          console.warn('Gemini is unavailable; trying the Groq fallback.');
+          reply = await generateGroqReply(contents);
+        }
         return sendJson(response, 200, reply);
       } catch (error) {
         console.error('Gary reply failed:', error);
