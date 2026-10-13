@@ -12,6 +12,15 @@ const ai = new GoogleGenAI({ apiKey });
 const model = process.env.GEMINI_MODEL ?? 'gemini-3.8-flash';
 const groqApiKey = process.env.GROQ_API_KEY;
 const groqModel = process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile';
+const garyReplySchema = {
+  type: 'object',
+  properties: {
+    text: { type: 'string' },
+    suggestions: { type: 'array', items: { type: 'string' }, maxItems: 3 },
+  },
+  required: ['text', 'suggestions'],
+  additionalProperties: false,
+};
 
 const instructions = `You are Gary, a kind, concise voice assistant for an older adult using DailyMind.
 Use only the supplied personal context when discussing routines and memories. Speak in short, plain sentences that are easy to hear. Never diagnose illness, prescribe treatment, claim to contact emergency services, or present yourself as a doctor. If someone describes an immediate emergency, tell them to use the in-app SOS button or local emergency services and contact a caregiver. Do not invent appointments, medications, caregiver actions, or facts.
@@ -73,15 +82,7 @@ async function generateGaryReply(contents) {
           temperature: 0.35,
           maxOutputTokens: 320,
           responseMimeType: 'application/json',
-          responseJsonSchema: {
-            type: 'object',
-            properties: {
-              text: { type: 'string' },
-              suggestions: { type: 'array', items: { type: 'string' }, maxItems: 3 },
-            },
-            required: ['text', 'suggestions'],
-            additionalProperties: false,
-          },
+          responseJsonSchema: garyReplySchema,
         },
       });
       return parseJson(result.text ?? '');
@@ -115,8 +116,15 @@ async function generateGroqReply(contents) {
             { role: 'user', content: contents },
           ],
       temperature: 0.35,
-      max_completion_tokens: 320,
-      response_format: { type: 'json_object' },
+      // GPT-OSS spends part of its output budget on hidden reasoning. Give the
+      // fallback enough room for context-rich DailyMind questions to finish.
+      max_completion_tokens: isGptOss ? 1024 : 320,
+      response_format: isGptOss
+        ? {
+            type: 'json_schema',
+            json_schema: { name: 'gary_reply', strict: true, schema: garyReplySchema },
+          }
+        : { type: 'json_object' },
       // Groq's GPT-OSS models require an explicit reasoning format when
       // JSON mode is enabled. Other fallback models do not accept this field.
       ...(isGptOss ? { reasoning_format: 'hidden' } : {}),
