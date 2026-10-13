@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { BottomNavigation } from '../components/BottomNavigation';
+import { Gary } from '../components/gary/Gary';
 
 /**
  * The phone frame. On a handset it fills the screen; on a wide screen it stays
@@ -24,8 +25,11 @@ export function AppShell() {
     <Frame>
       <main ref={scroller} className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
         <Outlet />
+        {/* Room at the end of every page, so the Gary button never covers the last item. */}
+        {pathname !== '/assistant' ? <div aria-hidden="true" className="h-16 shrink-0" /> : null}
       </main>
       <BottomNavigation />
+      <Gary />
     </Frame>
   );
 }

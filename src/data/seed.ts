@@ -1,4 +1,12 @@
-import type { Caregiver, CompletionLog, Memory, Routine, Settings } from '../types';
+import type {
+  Caregiver,
+  CompletionLog,
+  FamilyMember,
+  GarySettings,
+  Memory,
+  Routine,
+  Settings,
+} from '../types';
 import { photos, thumbs, avatars } from './photos';
 import { addDays, today, weekdayOf } from '../utils/date';
 
@@ -286,6 +294,38 @@ export const seedCaregivers: Caregiver[] = [
     permissions: { routines: true, memories: false, insights: false, profile: true },
   },
 ];
+
+/** The same family the sample memories mention, so Gary has something true to say. */
+export const seedFamily: FamilyMember[] = [
+  {
+    id: 'fam_priya',
+    name: 'Priya',
+    relation: 'Daughter',
+    photo: avatars.priya,
+    notes: 'Lives nearby and visits on Sundays.',
+    createdAt: '2025-01-02T06:00:00.000Z',
+  },
+  {
+    id: 'fam_rohan',
+    name: 'Rohan',
+    relation: 'Son',
+    createdAt: '2025-01-02T06:00:00.000Z',
+  },
+  {
+    id: 'fam_meera',
+    name: 'Meera',
+    relation: 'Granddaughter',
+    notes: "Priya's daughter. Learned to swim in Goa.",
+    createdAt: '2025-01-02T06:00:00.000Z',
+  },
+];
+
+export const defaultGarySettings: GarySettings = {
+  apiKey: '',
+  language: 'en',
+  addressAs: '',
+  model: 'claude-haiku-5-5',
+};
 
 /** Offered on the Add Memory screen so tagging stays a tap, not typing. */
 export const suggestedTags = [

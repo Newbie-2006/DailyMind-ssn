@@ -3,6 +3,9 @@ import type {
   Caregiver,
   CaregiverPermissions,
   CompletionLog,
+  FamilyMember,
+  FamilyMemberDraft,
+  GarySettings,
   ISODate,
   Memory,
   MemoryDraft,
@@ -34,7 +37,13 @@ export interface AppDataActions {
   setCaregiverPermission(id: string, key: keyof CaregiverPermissions, value: boolean): void;
   removeCaregiver(id: string): void;
 
-  /** Restores the sample content. Used from Profile. */
+  addFamilyMember(draft: FamilyMemberDraft): FamilyMember;
+  updateFamilyMember(id: string, patch: Partial<FamilyMemberDraft>): void;
+  removeFamilyMember(id: string): void;
+
+  updateGarySettings(patch: Partial<GarySettings>): void;
+
+  /** Restores the sample content. Used from Profile. Gary's setup is kept. */
   resetToSample(): void;
 }
 
@@ -45,6 +54,8 @@ export interface AppDataValue {
   reminders: Reminder[];
   settings: Settings;
   caregivers: Caregiver[];
+  family: FamilyMember[];
+  gary: GarySettings;
   /** False until the first read from storage has completed. */
   ready: boolean;
   actions: AppDataActions;

@@ -39,6 +39,10 @@ const PersonalInformation = lazy(() =>
 const NotificationSettingsPage = lazy(() =>
   import('./pages/ProfileDetails').then((m) => ({ default: m.NotificationSettingsPage })),
 );
+const Family = lazy(() => import('./pages/Family').then((m) => ({ default: m.Family })));
+const GarySettingsPage = lazy(() =>
+  import('./pages/GarySettings').then((m) => ({ default: m.GarySettingsPage })),
+);
 const HelpSupport = lazy(() =>
   import('./pages/ProfileDetails').then((m) => ({ default: m.HelpSupport })),
 );
@@ -72,6 +76,8 @@ export default function App() {
               <Route path="/profile/personal" element={<PersonalInformation />} />
               <Route path="/profile/notifications" element={<NotificationSettingsPage />} />
               <Route path="/profile/help" element={<HelpSupport />} />
+              <Route path="/profile/gary" element={<GarySettingsPage />} />
+              <Route path="/family" element={<Family />} />
               <Route path="/caregivers" element={<CaregiverAccess />} />
               <Route path="/privacy" element={<PrivacySharing />} />
             </Route>
