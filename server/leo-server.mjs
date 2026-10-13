@@ -113,6 +113,9 @@ async function generateGroqReply(contents) {
       temperature: 0.35,
       max_completion_tokens: 320,
       response_format: { type: 'json_object' },
+      // Groq's GPT-OSS models require an explicit reasoning format when
+      // JSON mode is enabled. Other fallback models do not accept this field.
+      ...(groqModel.startsWith('openai/gpt-oss-') ? { reasoning_format: 'hidden' } : {}),
     }),
   });
 
