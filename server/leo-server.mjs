@@ -37,6 +37,34 @@ function parseJson(text) {
   };
 }
 
+const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+function isTransientGeminiError(error) {
+  const status = Number(error?.status ?? error?.error?.code);
+  return status === 408 || status === 429 || (status >= 500 && status <= 599);
+}
+
+async function generateGaryReply(contents) {
+  // Gemini can briefly return 503 when capacity is constrained. Retry only
+  // transient failures, using a short exponential backoff with jitter.
+  const maxAttempts = 3;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    try {
+      return await ai.models.generateContent({
+        model,
+        contents,
+        config: { systemInstruction: instructions, temperature: 0.35, maxOutputTokens: 320 },
+      });
+    } catch (error) {
+      if (!isTransientGeminiError(error) || attempt === maxAttempts - 1) throw error;
+
+      const delay = 500 * 2 ** attempt + Math.floor(Math.random() * 250);
+      console.warn(`Gary request temporarily unavailable; retrying in ${delay}ms.`);
+      await sleep(delay);
+    }
+  }
+}
+
 http
   .createServer(async (request, response) => {
     if (request.method === 'GET' && request.url === '/health') {
@@ -60,14 +88,17 @@ http
           return sendJson(response, 400, { error: 'A message and context are required.' });
         }
 
-        const result = await ai.models.generateContent({
-          model,
-          contents: `Patient context:\n${JSON.stringify(context)}\n\nPatient says: ${input}`,
-          config: { systemInstruction: instructions, temperature: 0.35, maxOutputTokens: 320 },
-        });
+        const result = await generateGaryReply(
+          `Patient context:\n${JSON.stringify(context)}\n\nPatient says: ${input}`,
+        );
         return sendJson(response, 200, parseJson(result.text ?? ''));
       } catch (error) {
         console.error('Gary reply failed:', error);
+        if (isTransientGeminiError(error)) {
+          return sendJson(response, 503, {
+            error: 'Gary is temporarily busy. Please try again in a moment.',
+          });
+        }
         return sendJson(response, 502, { error: 'Gary could not prepare a reply.' });
       }
     });

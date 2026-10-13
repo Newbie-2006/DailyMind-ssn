@@ -37,7 +37,12 @@ export class GeminiAssistantProvider implements AssistantProvider {
       }),
     });
 
-    if (!response.ok) throw new Error('Gary could not reach the AI service.');
+    if (!response.ok) {
+      if (response.status === 408 || response.status === 429 || response.status >= 500) {
+        throw new Error('Gary is temporarily busy. Please try again in a moment.');
+      }
+      throw new Error('Gary could not reach the AI service.');
+    }
     const result = (await response.json()) as { text?: unknown; suggestions?: unknown };
     if (typeof result.text !== 'string' || !result.text.trim()) {
       throw new Error('Gary received an empty AI response.');

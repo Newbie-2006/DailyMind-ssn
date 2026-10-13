@@ -76,8 +76,12 @@ export function Assistant() {
           { id: createId('turn'), role: 'assistant', reply, time: clockTime() },
         ]);
         if (readReplyAloud) await speakText(reply.text);
-      } catch {
-        setError('Something went wrong reaching the assistant. Please try again.');
+      } catch (error) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : 'Something went wrong reaching the assistant. Please try again.',
+        );
       } finally {
         setThinking(false);
       }
