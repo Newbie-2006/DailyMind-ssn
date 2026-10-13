@@ -170,7 +170,7 @@ export function ChatInput({
                 ? `Listening for “${wakeWord}”…`
                 : starting
                   ? 'Gary is starting voice recognition…'
-                  : 'Gary is restarting voice recognition…'
+                  : `Say “${wakeWord}” to talk to Gary.`
             : 'Voice listening is off.'}
         </p>
       ) : null}
