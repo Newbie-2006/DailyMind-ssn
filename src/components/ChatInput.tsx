@@ -23,12 +23,13 @@ export function ChatInput({
 }) {
   const [value, setValue] = useState('');
   const [listening, setListening] = useState(false);
+  const [starting, setStarting] = useState(false);
   const [wakeEnabled, setWakeEnabled] = useState(true);
   const [awaitingCommand, setAwaitingCommand] = useState(false);
+  const [waitingForReply, setWaitingForReply] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const sessionRef = useRef<VoiceSession | null>(null);
   const startingRef = useRef(false);
-  const holdUntilReplyRef = useRef(false);
   const wasDisabledRef = useRef(disabled);
 
   const submit = (event: FormEvent) => {
@@ -42,27 +43,29 @@ export function ChatInput({
   const startWakeListening = useCallback(async () => {
     if (disabled || startingRef.current || sessionRef.current || !wakeEnabled) return;
     startingRef.current = true;
+    setStarting(true);
     setVoiceError(null);
     try {
       const nextSession = await startListening({
-        onPartial: setValue,
-        onComplete: (transcript) => {
+        onPartial: (transcript) => setValue(transcript),
+        onComplete: (transcript, alternatives) => {
           sessionRef.current = null;
           setListening(false);
-          if (!transcript) return;
+          const spoken = alternatives.length > 0 ? alternatives : [transcript];
+          if (!spoken.some((candidate) => candidate.trim())) return;
 
           const command = awaitingCommand
-            ? transcript.trim()
-            : commandAfterWakeWord(transcript, wakeWord);
+            ? spoken.find((candidate) => candidate.trim())?.trim() ?? null
+            : spoken.map((candidate) => commandAfterWakeWord(candidate, wakeWord)).find(Boolean) ?? null;
           if (command) {
             setValue('');
             setAwaitingCommand(false);
-            holdUntilReplyRef.current = true;
+            setWaitingForReply(true);
             (onVoiceSend ?? onSend)(command);
             return;
           }
 
-          if (isWakeWordOnly(transcript, wakeWord)) {
+          if (spoken.some((candidate) => isWakeWordOnly(candidate, wakeWord))) {
             setAwaitingCommand(true);
             setValue('');
           }
@@ -80,18 +83,19 @@ export function ChatInput({
       setListening(false);
     } finally {
       startingRef.current = false;
+      setStarting(false);
     }
   }, [awaitingCommand, disabled, onSend, onVoiceSend, wakeEnabled, wakeWord]);
 
   // While Gary's page is open, restart Android's one-shot recognizer after
   // each turn. This makes “Hey Gary, …” hands-free without background listening.
   useEffect(() => {
-    if (!wakeEnabled || disabled || holdUntilReplyRef.current) return;
+    if (!wakeEnabled || disabled || waitingForReply) return;
     void startWakeListening();
-  }, [disabled, startWakeListening, wakeEnabled]);
+  }, [disabled, startWakeListening, wakeEnabled, waitingForReply]);
 
   useEffect(() => {
-    if (wasDisabledRef.current && !disabled) holdUntilReplyRef.current = false;
+    if (wasDisabledRef.current && !disabled) setWaitingForReply(false);
     wasDisabledRef.current = disabled;
     if (disabled && sessionRef.current) {
       void sessionRef.current.stop();
@@ -164,7 +168,9 @@ export function ChatInput({
               ? 'Gary is listening for your request…'
               : listening
                 ? `Listening for “${wakeWord}”…`
-                : 'Gary is preparing voice recognition…'
+                : starting
+                  ? 'Gary is starting voice recognition…'
+                  : 'Gary is restarting voice recognition…'
             : 'Voice listening is off.'}
         </p>
       ) : null}

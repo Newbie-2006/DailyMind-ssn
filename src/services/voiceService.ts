@@ -20,8 +20,8 @@ export interface VoiceSession {
 
 export interface StartListeningOptions {
   language?: string;
-  onPartial(text: string): void;
-  onComplete(text: string): void;
+  onPartial(text: string, alternatives: string[]): void;
+  onComplete(text: string, alternatives: string[]): void;
 }
 
 function isNative(): boolean {
@@ -48,7 +48,7 @@ export async function startListening(options: StartListeningOptions): Promise<Vo
     throw new Error('Microphone permission is needed to use voice input.');
   }
 
-  let transcript = '';
+  let alternatives: string[] = [];
   let finished = false;
   const listeners: PluginListenerHandle[] = [];
 
@@ -60,13 +60,13 @@ export async function startListening(options: StartListeningOptions): Promise<Vo
     if (finished) return;
     finished = true;
     void removeListeners();
-    options.onComplete(transcript.trim());
+    options.onComplete(alternatives[0]?.trim() ?? '', alternatives);
   };
 
   listeners.push(
     await SpeechRecognition.addListener('partialResults', ({ matches }) => {
-      transcript = matches[0] ?? transcript;
-      options.onPartial(transcript);
+      alternatives = matches.filter((match) => match.trim().length > 0);
+      options.onPartial(alternatives[0] ?? '', alternatives);
     }),
   );
   listeners.push(
@@ -77,8 +77,10 @@ export async function startListening(options: StartListeningOptions): Promise<Vo
 
   try {
     await SpeechRecognition.start({
-      language: options.language ?? 'en-IN',
-      maxResults: 1,
+      // The device language gives Google's recognizer the best chance of
+      // understanding the person's accent and chosen language.
+      language: options.language ?? navigator.language ?? 'en-IN',
+      maxResults: 3,
       partialResults: true,
       // The in-app control already communicates listening state clearly.
       popup: false,
