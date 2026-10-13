@@ -10,6 +10,7 @@ import { firstName, listToSentence, pluralize } from '../utils/format';
 import { filterMemories, sortByDate } from './memoryService';
 import { occurrencesFor, progressFor } from './routineService';
 import { buildInsights } from './insightsService';
+import { GeminiAssistantProvider } from './geminiAssistantProvider';
 
 /**
  * The assistant is a provider behind an interface, so the mock below can be
@@ -352,11 +353,15 @@ export class MockAssistantProvider implements AssistantProvider {
   }
 }
 
-export const assistant: AssistantProvider = new MockAssistantProvider();
+const garyServiceUrl = import.meta.env.VITE_GARY_API_URL?.replace(/\/$/, '');
+/** Falls back to the existing offline assistant until a Gemini service URL is configured. */
+export const assistant: AssistantProvider = garyServiceUrl
+  ? new GeminiAssistantProvider(garyServiceUrl)
+  : new MockAssistantProvider();
 
 export function greetingMessage(userName: string): AssistantReply {
   return {
-    text: `Hello ${firstName(userName)}. I am your DailyMind assistant. I can help you with your routines, memories and daily plans. What would you like to know?`,
+    text: `Hello ${firstName(userName)}. I am Gary, your assistant. I can help you with your routines, memories and daily plans. What would you like to know?`,
     suggestions: defaultSuggestions,
   };
 }

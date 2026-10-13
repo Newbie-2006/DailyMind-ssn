@@ -12,6 +12,7 @@ import {
   type ChatTurn,
 } from '../components/AssistantMessage';
 import { ChatInput } from '../components/ChatInput';
+import { speakText } from '../services/voiceService';
 
 function clockTime(): string {
   const now = new Date();
@@ -60,7 +61,7 @@ export function Assistant() {
   }, [turns, thinking]);
 
   const send = useCallback(
-    async (text: string) => {
+    async (text: string, readReplyAloud = false) => {
       setError(null);
       setTurns((current) => [
         ...current,
@@ -74,6 +75,7 @@ export function Assistant() {
           ...current,
           { id: createId('turn'), role: 'assistant', reply, time: clockTime() },
         ]);
+        if (readReplyAloud) await speakText(reply.text);
       } catch {
         setError('Something went wrong reaching the assistant. Please try again.');
       } finally {
@@ -88,14 +90,21 @@ export function Assistant() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <PageHeader title="DailyMind Assistant" />
+      <PageHeader title="Gary" />
 
       <div className="flex-1 space-y-4 px-5 pt-2 pb-4">
         {turns.map((turn) =>
           turn.role === 'user' ? (
             <UserMessage key={turn.id} text={turn.text ?? ''} time={turn.time} />
           ) : (
-            turn.reply && <AssistantBubble key={turn.id} reply={turn.reply} time={turn.time} />
+            turn.reply && (
+              <AssistantBubble
+                key={turn.id}
+                reply={turn.reply}
+                time={turn.time}
+                onSpeak={(text) => void speakText(text)}
+              />
+            )
           ),
         )}
 
@@ -118,7 +127,12 @@ export function Assistant() {
         {suggestions.length > 0 ? (
           <SuggestionRow suggestions={suggestions} onPick={(text) => void send(text)} />
         ) : null}
-        <ChatInput onSend={(text) => void send(text)} disabled={thinking} />
+        <ChatInput
+          onSend={(text) => void send(text)}
+          onVoiceSend={(text) => void send(text, true)}
+          placeholder="Ask Gary anything..."
+          disabled={thinking}
+        />
       </div>
     </div>
   );

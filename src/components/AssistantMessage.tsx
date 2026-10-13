@@ -1,4 +1,4 @@
-import { ArrowRight, Sprout } from 'lucide-react';
+import { ArrowRight, Sprout, Volume2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { AssistantReply } from '../services/assistantService';
 import { RoutineIconGlyph } from './RoutineIconGlyph';
@@ -25,11 +25,31 @@ export function UserMessage({ text, time }: { text: string; time: string }) {
   );
 }
 
-export function AssistantBubble({ reply, time }: { reply: AssistantReply; time: string }) {
+export function AssistantBubble({
+  reply,
+  time,
+  onSpeak,
+}: {
+  reply: AssistantReply;
+  time: string;
+  onSpeak?: (text: string) => void;
+}) {
   return (
     <div className="flex flex-col items-start">
       <div className="max-w-[88%] rounded-[1.125rem] rounded-bl-md bg-surface px-4 py-3.5 shadow-soft">
-        <p className="text-[0.9375rem] leading-relaxed text-ink">{reply.text}</p>
+        <div className="flex items-start gap-2">
+          <p className="min-w-0 flex-1 text-[0.9375rem] leading-relaxed text-ink">{reply.text}</p>
+          {onSpeak ? (
+            <button
+              type="button"
+              onClick={() => onSpeak(reply.text)}
+              aria-label="Read this reply aloud"
+              className="tap inline-flex size-9 shrink-0 items-center justify-center rounded-full text-forest-soft transition-colors active:bg-sage-wash"
+            >
+              <Volume2 size={17} aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
 
         {reply.items?.length ? (
           <ul className="mt-3 space-y-1.5">
