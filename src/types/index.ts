@@ -87,6 +87,34 @@ export interface Caregiver {
   permissions: CaregiverPermissions;
 }
 
+/**
+ * A person the family has saved so Gary can answer "what is my daughter's
+ * name?" from a real record instead of guessing.
+ */
+export interface FamilyMember {
+  id: string;
+  name: string;
+  /** In English, as the family would say it: Daughter, Son, Grandson... */
+  relation: string;
+  photo?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export type FamilyMemberDraft = Omit<FamilyMember, 'id' | 'createdAt'>;
+
+export type GaryLanguage = 'en' | 'ta';
+
+/** Set up by a caregiver. Kept apart from `Settings` so a reset never wipes the key. */
+export interface GarySettings {
+  /** The caregiver's own Anthropic API key. Stays on this device. */
+  apiKey: string;
+  language: GaryLanguage;
+  /** How Gary addresses the person: Paati, Thaatha, Amma, or a first name. */
+  addressAs: string;
+  model: string;
+}
+
 export interface NotificationSettings {
   routineReminders: boolean;
   memoryPrompts: boolean;

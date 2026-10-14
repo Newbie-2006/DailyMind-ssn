@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import {
+  Activity,
   Bell,
   ChevronRight,
   CircleHelp,
+  HeartHandshake,
+  Mic,
   RotateCcw,
   ShieldCheck,
   Sprout,
@@ -27,7 +30,7 @@ interface Row {
 }
 
 export function Profile() {
-  const { settings, caregivers, memories, actions } = useAppData();
+  const { settings, caregivers, memories, family, gary, actions } = useAppData();
   const { notify } = useToast();
   const [confirmingReset, setConfirmingReset] = useState(false);
 
@@ -41,6 +44,19 @@ export function Profile() {
       icon: Users,
       meta: activeCaregivers > 0 ? `${activeCaregivers} active` : 'None',
     },
+    {
+      to: '/profile/gary',
+      label: 'Gary voice assistant',
+      icon: Mic,
+      meta: gary.apiKey ? 'Set up' : 'Not set up',
+    },
+    {
+      to: '/family',
+      label: 'Family details',
+      icon: HeartHandshake,
+      meta: family.length > 0 ? `${family.length} saved` : 'None',
+    },
+    { to: '/monitoring', label: 'Safety monitoring', icon: Activity },
     { to: '/privacy', label: 'Privacy and sharing', icon: ShieldCheck },
     { to: '/profile/notifications', label: 'Notifications', icon: Bell },
     { to: '/profile/help', label: 'Help and support', icon: CircleHelp },
@@ -112,7 +128,8 @@ export function Profile() {
           <Sprout size={18} strokeWidth={1.6} aria-hidden="true" className="mt-0.5 shrink-0 text-forest-soft" />
           <p className="text-[0.8125rem] leading-relaxed text-ink-soft">
             Everything you write stays on this device. DailyMind only shares what you switch on
-            yourself.
+            yourself. When Gary is set up, the details needed to answer a question are sent to
+            Anthropic to produce the reply.
           </p>
         </Card>
 
@@ -126,7 +143,7 @@ export function Profile() {
         open={confirmingReset}
         onClose={() => setConfirmingReset(false)}
         title="Restore sample content?"
-        description="Your memories, routines and settings on this device will be replaced with the sample ones. This cannot be undone."
+        description="Your memories, routines, family details and settings on this device will be replaced with the sample ones. Gary’s setup is kept. This cannot be undone."
         actions={
           <>
             <Button

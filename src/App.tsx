@@ -39,8 +39,21 @@ const PersonalInformation = lazy(() =>
 const NotificationSettingsPage = lazy(() =>
   import('./pages/ProfileDetails').then((m) => ({ default: m.NotificationSettingsPage })),
 );
+const Family = lazy(() => import('./pages/Family').then((m) => ({ default: m.Family })));
+const GarySettingsPage = lazy(() =>
+  import('./pages/GarySettings').then((m) => ({ default: m.GarySettingsPage })),
+);
 const HelpSupport = lazy(() =>
   import('./pages/ProfileDetails').then((m) => ({ default: m.HelpSupport })),
+);
+const Monitoring = lazy(() =>
+  import('./pages/Monitoring').then((m) => ({ default: m.Monitoring })),
+);
+const AlertHistory = lazy(() =>
+  import('./pages/AlertHistory').then((m) => ({ default: m.AlertHistory })),
+);
+const CameraMonitor = lazy(() =>
+  import('./pages/CameraMonitor').then((m) => ({ default: m.CameraMonitor })),
 );
 
 export default function App() {
@@ -72,8 +85,13 @@ export default function App() {
               <Route path="/profile/personal" element={<PersonalInformation />} />
               <Route path="/profile/notifications" element={<NotificationSettingsPage />} />
               <Route path="/profile/help" element={<HelpSupport />} />
+              <Route path="/profile/gary" element={<GarySettingsPage />} />
+              <Route path="/family" element={<Family />} />
               <Route path="/caregivers" element={<CaregiverAccess />} />
               <Route path="/privacy" element={<PrivacySharing />} />
+              <Route path="/monitoring" element={<Monitoring />} />
+              <Route path="/monitoring/alerts" element={<AlertHistory />} />
+              <Route path="/monitoring/camera" element={<CameraMonitor />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/home" replace />} />

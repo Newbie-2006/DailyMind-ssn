@@ -16,6 +16,8 @@ export const StorageKeys = {
   reminders: 'reminders',
   settings: 'settings',
   caregivers: 'caregivers',
+  family: 'family',
+  gary: 'gary',
   seeded: 'seeded',
 } as const;
 
@@ -66,14 +68,21 @@ export function writeKey<T>(key: StorageKey, value: T): void {
   }
 }
 
+/**
+ * Gary's setup (the caregiver's API key, language and form of address) is not
+ * sample content, so restoring the samples leaves it where it is.
+ */
+const SURVIVES_RESET: StorageKey[] = [StorageKeys.gary];
+
 export function clearAll(): void {
   const store = available();
+  const toClear = Object.values(StorageKeys).filter((key) => !SURVIVES_RESET.includes(key));
   try {
     if (store) {
-      Object.values(StorageKeys).forEach((key) => store.removeItem(fullKey(key)));
+      toClear.forEach((key) => store.removeItem(fullKey(key)));
     }
   } catch {
     // Nothing to do: the fallback clear below still applies.
   }
-  memoryFallback.clear();
+  toClear.forEach((key) => memoryFallback.delete(fullKey(key)));
 }

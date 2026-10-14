@@ -1,0 +1,72 @@
+// ============================================================================
+// DailyMind IMU + SOS — Configuration (EXAMPLE)
+// ============================================================================
+// Copy this file to "config.h" and fill in your real values.
+//   cp config.h.example config.h
+// NEVER commit config.h — it contains secrets.
+// ============================================================================
+
+#ifndef DAILYMIND_CONFIG_H
+#define DAILYMIND_CONFIG_H
+
+// ---- Wi-Fi credentials ----------------------------------------------------
+#define WIFI_SSID     "YourNetworkName"
+#define WIFI_PASSWORD "YourNetworkPassword"
+
+// ---- DailyMind backend ----------------------------------------------------
+// The HTTPS URL of your DailyMind server (no trailing slash).
+#define BACKEND_URL   "https://dailymind-ssn.onrender.com"
+
+// A shared secret that the server checks in the X-Device-Key header.
+// Generate a random string and set the same value in the server env var
+// HARDWARE_DEVICE_KEY.
+#define DEVICE_API_KEY "change-me-to-a-random-secret"
+
+// A human-readable identifier for this specific device.
+#define DEVICE_ID      "dailyMind-imu-001"
+
+// ---- Hardware pins ---------------------------------------------------------
+// Adjust these if your ESP32 board uses a different GPIO layout.
+#define PIN_SDA        21
+#define PIN_SCL        22
+#define PIN_SOS_BUTTON 25
+#define PIN_LED        26
+
+// ---- Fall-detection thresholds (experimental) ------------------------------
+// Total acceleration magnitude (in g) that triggers a candidate fall.
+// Normal standing ≈ 1 g.  A fall typically spikes above 2.5 g.
+#define FALL_ACCEL_THRESHOLD_G   2.8
+
+// Angular velocity magnitude (°/s) above which rotation is considered violent.
+#define FALL_GYRO_THRESHOLD_DPS  250.0
+
+// After a candidate spike, how many milliseconds to wait for inactivity
+// (low acceleration) before confirming the fall.
+#define FALL_INACTIVITY_WINDOW_MS 800
+
+// Acceleration magnitude (in g) below which the person is considered
+// motionless during the inactivity window.
+#define FALL_INACTIVITY_THRESHOLD_G 0.5
+
+// Cool-down (ms) after a confirmed fall before another can be detected.
+#define FALL_COOLDOWN_MS 30000
+
+// ---- SOS button debounce ---------------------------------------------------
+#define SOS_DEBOUNCE_MS 300
+
+// ---- Network retry ---------------------------------------------------------
+// Maximum number of retries for a failed HTTP POST.
+#define MAX_RETRIES     3
+
+// Initial retry delay (ms).  Doubles on each retry (bounded backoff).
+#define RETRY_BASE_MS   1000
+
+// Minimum interval (ms) between any two event transmissions to avoid flooding.
+#define MIN_EVENT_INTERVAL_MS 5000
+
+// ---- Serial debug ----------------------------------------------------------
+// Set to 1 to print sensor readings and event state to the serial monitor.
+// Set to 0 for production to reduce noise (secrets are never printed either way).
+#define DEBUG_SERIAL 1
+
+#endif // DAILYMIND_CONFIG_H

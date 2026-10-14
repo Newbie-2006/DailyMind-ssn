@@ -3,6 +3,9 @@ import type {
   Caregiver,
   CaregiverPermissions,
   CompletionLog,
+  FamilyMember,
+  FamilyMemberDraft,
+  GarySettings,
   ISODate,
   Memory,
   MemoryDraft,
@@ -15,6 +18,7 @@ import type {
 import {
   buildSeedCompletions,
   seedCaregivers,
+  seedFamily,
   seedMemories,
   seedRoutines,
   seedSettings,
@@ -37,6 +41,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [reminders, setReminders] = useState<Reminder[]>(() => initialState().reminders);
   const [settings, setSettings] = useState<Settings>(() => initialState().settings);
   const [caregivers, setCaregivers] = useState<Caregiver[]>(() => initialState().caregivers);
+  const [family, setFamily] = useState<FamilyMember[]>(() => initialState().family);
+  const [gary, setGary] = useState<GarySettings>(() => initialState().gary);
 
   // Each slice is written back whenever it changes. The first pass rewrites
   // what was just read, which costs nothing and keeps the rule simple.
@@ -63,6 +69,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     writeKey(StorageKeys.caregivers, caregivers);
   }, [caregivers]);
+
+  useEffect(() => {
+    writeKey(StorageKeys.family, family);
+  }, [family]);
+
+  useEffect(() => {
+    writeKey(StorageKeys.gary, gary);
+  }, [gary]);
 
   const addMemory = useCallback((draft: MemoryDraft): Memory => {
     const memory: Memory = { ...draft, id: createId('mem'), createdAt: new Date().toISOString() };
@@ -152,6 +166,30 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setCaregivers((current) => current.filter((caregiver) => caregiver.id !== id));
   }, []);
 
+  const addFamilyMember = useCallback((draft: FamilyMemberDraft): FamilyMember => {
+    const member: FamilyMember = {
+      ...draft,
+      id: createId('fam'),
+      createdAt: new Date().toISOString(),
+    };
+    setFamily((current) => [...current, member]);
+    return member;
+  }, []);
+
+  const updateFamilyMember = useCallback((id: string, patch: Partial<FamilyMemberDraft>) => {
+    setFamily((current) =>
+      current.map((member) => (member.id === id ? { ...member, ...patch } : member)),
+    );
+  }, []);
+
+  const removeFamilyMember = useCallback((id: string) => {
+    setFamily((current) => current.filter((member) => member.id !== id));
+  }, []);
+
+  const updateGarySettings = useCallback((patch: Partial<GarySettings>) => {
+    setGary((current) => ({ ...current, ...patch }));
+  }, []);
+
   const resetToSample = useCallback(() => {
     const initialCompletions = buildSeedCompletions();
     clearAll();
@@ -162,6 +200,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setReminders([]);
     setSettings({ ...seedSettings, onboarded: true });
     setCaregivers(seedCaregivers);
+    setFamily(seedFamily);
+    // Gary's setup is left alone: clearAll keeps it, and so does the state.
     writeKey(StorageKeys.seeded, true);
   }, []);
 
@@ -173,6 +213,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       reminders,
       settings,
       caregivers,
+      family,
+      gary,
       ready: true,
       actions: {
         addMemory,
@@ -190,6 +232,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         updateCaregiver,
         setCaregiverPermission,
         removeCaregiver,
+        addFamilyMember,
+        updateFamilyMember,
+        removeFamilyMember,
+        updateGarySettings,
         resetToSample,
       },
     }),
@@ -200,6 +246,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       reminders,
       settings,
       caregivers,
+      family,
+      gary,
       addMemory,
       updateMemory,
       deleteMemory,
@@ -215,6 +263,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updateCaregiver,
       setCaregiverPermission,
       removeCaregiver,
+      addFamilyMember,
+      updateFamilyMember,
+      removeFamilyMember,
+      updateGarySettings,
       resetToSample,
     ],
   );
