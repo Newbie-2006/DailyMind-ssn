@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Hardware
+hardware/esp32-fall-sos/DailyMind_IMU_SOS/config.h
+hardware/camera-android/.gradle/
+hardware/camera-android/app/build/
+hardware/camera-android/build/
+hardware/camera-android/local.properties

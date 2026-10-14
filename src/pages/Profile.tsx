@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Activity,
   Bell,
   ChevronRight,
   CircleHelp,
@@ -55,6 +56,7 @@ export function Profile() {
       icon: HeartHandshake,
       meta: family.length > 0 ? `${family.length} saved` : 'None',
     },
+    { to: '/monitoring', label: 'Safety monitoring', icon: Activity },
     { to: '/privacy', label: 'Privacy and sharing', icon: ShieldCheck },
     { to: '/profile/notifications', label: 'Notifications', icon: Bell },
     { to: '/profile/help', label: 'Help and support', icon: CircleHelp },
